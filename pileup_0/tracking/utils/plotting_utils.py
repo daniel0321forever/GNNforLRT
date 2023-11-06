@@ -167,4 +167,4 @@ def plot_pt_eff(particles):
     ax.set_ylabel('Efficiency', fontsize=16)
 
     # Save the plot
-    fig.savefig('pt_efficiency.png')
+    fig.savefig('../../metrics/pileup_0/pt_efficiency.png')
