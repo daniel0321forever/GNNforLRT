@@ -1,6 +1,0 @@
-config.1:
-  plot: 'example.1'
-  args: {}
-config.2:
-  plot: 'example.2'
-  args: {}
