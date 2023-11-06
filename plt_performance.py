@@ -54,4 +54,4 @@ if __name__ == '__main__':
             'truth': truth,
             'score': score
         }
-    ).plot(save="./performance")
+    ).plot(save="metrics/pileup_0/performance")
