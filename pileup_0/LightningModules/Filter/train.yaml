@@ -19,6 +19,7 @@ in_channels: 3
 hidden: 512
 nb_layer: 5
 emb_channels: 0
+batch_size: 1
 layernorm: True
 batchnorm: False
 n_chunks: 8

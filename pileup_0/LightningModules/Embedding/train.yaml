@@ -18,6 +18,7 @@ nb_layer: 6
 emb_dim: 8
 weight: 10
 randomisation: 2
+batch_size: 1
 points_per_batch: 100000
 r_train: 1.6
 r_val: 1.6

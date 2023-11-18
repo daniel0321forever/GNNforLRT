@@ -1,5 +1,5 @@
 stage_list:
-        # - { set: Embedding, name: LayerlessEmbedding, config: train.yaml,resume_id: , batch_config: configs/batch_gpu_default.yaml, batch_setup: True, override: {callbacks: [EmbeddingBuilder]}}
+    - { set: Embedding, name: LayerlessEmbedding, config: train.yaml,resume_id: , batch_config: configs/batch_gpu_default.yaml, batch_setup: True, override: {callbacks: [EmbeddingBuilder]}}
         # - {set: Filter, name: VanillaFilter, config: train.yaml, resume_id: , batch_config: configs/batch_gpu_default.yaml,batch_setup: True,override: {callbacks: [FilterBuilder, FilterTelemetry]}}
     - {
       set: GNN,

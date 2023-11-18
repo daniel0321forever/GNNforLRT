@@ -17,6 +17,7 @@ noise: True
 # Model parameters
 in_channels: 3
 hidden: 64
+batch_size: 1
 n_graph_iters: 8
 nb_node_layer: 3
 nb_edge_layer: 3

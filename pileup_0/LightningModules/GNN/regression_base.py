@@ -38,19 +38,19 @@ class RegressionBase(LightningModule):
 
     def train_dataloader(self):
         if self.trainset is not None:
-            return DataLoader(self.trainset, batch_size=1, num_workers=1)
+            return DataLoader(self.trainset, batch_size=self.hparams["batch_size"], num_workers=1)
         else:
             return None
 
     def val_dataloader(self):
         if self.valset is not None:
-            return DataLoader(self.valset, batch_size=1, num_workers=1)
+            return DataLoader(self.valset, batch_size=self.hparams["batch_size"], num_workers=1)
         else:
             return None
 
     def test_dataloader(self):
         if self.testset is not None:
-            return DataLoader(self.testset, batch_size=1, num_workers=1)
+            return DataLoader(self.testset, batch_size=self.hparams["batch_size"], num_workers=1)
         else:
             return None
 
