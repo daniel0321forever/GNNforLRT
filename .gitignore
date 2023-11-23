@@ -1,5 +1,4 @@
-pileup_0/dataset/embedding
-pileup_0/dataset/filtering
-pileup_0/dataset/GNN
-pileup_0/dataset/tracking
+pileup_0/dataset/*
 datasets/
+
+convertion_script/output_HNL/train_all/*

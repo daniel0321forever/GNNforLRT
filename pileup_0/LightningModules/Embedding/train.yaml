@@ -1,5 +1,5 @@
 # Input/output configuration
-input_dir: dataset/processed_15Gev_100mm_5k
+input_dir: raw_dataset/hnl_pu200
 output_dir: dataset/embedding
 project: LRT_Embedding
 overwrite: True
@@ -7,7 +7,7 @@ overwrite: True
 # Dataset parameters
 pt_signal_min: 0
 pt_background_min: 0
-train_split: [[4000, 500, 500]] # Number of [training, validation, testing] examples
+train_split: [[90, 5, 5]] # Number of [training, validation, testing] examples
 true_edges: layerless_true_edges
 noise: True
 

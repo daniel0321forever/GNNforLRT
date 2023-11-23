@@ -40,6 +40,7 @@ for source_file in tqdm(list(source.glob('*'))):
     
     name_idx = source_file.name.split(".")[0]
     evtid = int(name_idx)
+    print(source_file)
     npz_data = np.load(source_file)
 
     # print([key for key in npz_data.keys()])
