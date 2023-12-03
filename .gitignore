@@ -1,4 +1,9 @@
-pileup_0/dataset/*
-datasets/
+pipelines/*/raw_dataset/
 
-convertion_script/output_HNL/train_all/*
+pipelines/*/dataset/*/train
+pipelines/*/dataset/*/val
+pipelines/*/dataset/*/test
+
+pipelines/*/lightning_checkpoints/LRT*
+
+sample_conversion/conversion_script/output_HNL/train_all/*
