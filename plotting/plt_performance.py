@@ -15,7 +15,7 @@ import ExaTrkXPlots.performance
 if __name__ == '__main__':
     fig, ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)
 
-    data = torch.load('../pipelines/pileup_40/dataset/GNN/test/0014')
+    data = torch.load('../pipelines/pileup_40/dataset/GNN/test/0125')
     truth, score = data['truth'], data['score']
 
     truth = truth.cpu().numpy()
@@ -37,7 +37,8 @@ if __name__ == '__main__':
     """
 
     Plotter(
-        fig, {
+        fig = fig, 
+        plots={
             ax[0, 0]: PlotConfig(
                 plot='exatrkx.performance.score_distribution'
             ),

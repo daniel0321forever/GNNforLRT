@@ -7,7 +7,7 @@ overwrite: True
 # Dataset parameters
 pt_signal_min: 0
 pt_background_min: 0
-train_split: [[4000, 500, 500]] # Number of [training, validation, testing] examples
+train_split: [[900, 50, 50]] # Number of [training, validation, testing] examples
 true_edges: layerless_true_edges
 noise: True
 
@@ -36,4 +36,4 @@ max_epochs: 20
 checkpoint_path: lightning_checkpoints
 
 # Postprocessing
-callbacks: [EmbeddingTelemetry]  
+callbacks: [EmbeddingPurEff, EmbeddingBuilder]  

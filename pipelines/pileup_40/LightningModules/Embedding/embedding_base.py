@@ -335,16 +335,10 @@ class EmbeddingBase(LightningModule):
         pur = torch.tensor(cluster_true_positive / cluster_positive)
 
         """current_lr = self.optimizers().param_groups[0]["lr"]"""
-        # if log:
-        #     self.log_dict({
-        #         "val_loss": loss, 
-        #         "eff": eff, 
-        #         "pur": pur
-        #         # "current_lr": current_lr
-        #     })
-        print("Efficiency: {}".format(eff))
-        print("Purity: {}".format(pur))
-        print(batch.event_file)
+
+        logging.info("Efficiency: {}".format(eff))
+        logging.info("Purity: {}".format(pur))
+        logging.info(batch.event_file)
 
 
         return {

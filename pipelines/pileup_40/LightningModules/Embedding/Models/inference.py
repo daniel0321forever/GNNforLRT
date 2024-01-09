@@ -16,8 +16,77 @@ import matplotlib.pyplot as plt
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
+import yaml
 
 from ..utils import build_edges, graph_intersection
+
+
+class EmbeddingPurEff(Callback):
+
+    def __init__(self):
+        super().__init__()
+        print("Calculating pur and eff")
+
+    def on_test_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        """
+        This hook is automatically called when the model is tested after training. The best checkpoint is automatically loaded
+        """
+        self.preds = []
+        self.truth = []
+        self.truth_graph = []
+        self.distances = []
+        self.eff = []
+        self.pur = []
+        
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+
+        """
+        Get the relevant outputs from each batch
+        """
+        
+        self.truth.append(outputs["truth"].cpu())
+        self.distances.append(outputs["distances"].cpu())
+        self.truth_graph.append(outputs["truth_graph"].cpu())
+
+    def on_test_end(self, trainer, pl_module):
+
+        """
+        1. Aggregate all outputs,
+        2. Calculate the ROC curve,
+        3. Plot ROC curve,
+        4. Save plots to PDF 'metrics.pdf'
+        """
+        
+        self.distances = torch.cat(self.distances)
+        self.truth = torch.cat(self.truth)
+        self.truth_graph = torch.cat(self.truth_graph, axis=1)
+        
+        r_cuts = np.arange(0.3, 1.5, 0.1)
+        
+        print(self.truth.shape)
+        print(self.distances < r_cuts[0])
+        print(self.distances.shape)
+        
+        positives = np.array([self.truth[self.distances < r_cut].shape[0] for r_cut in r_cuts])
+        true_positives = np.array([self.truth[self.distances < r_cut].sum() for r_cut in r_cuts])
+                
+        eff = true_positives / self.truth_graph.shape[1]
+        pur = true_positives / positives
+        
+        # TODO: return eff and pur of the stage
+        self.eff = eff
+        self.pur = pur
+        
+        print("\n\n=====================================================================")
+        print("eff", self.eff.mean().item())
+        print("pur", self.pur.mean().item())
+        data = {"emb_eff": self.eff.mean().item(), "emb_pur": self.pur.mean().item()}
+        with open("tmp.yaml", 'a') as file:
+            yaml.dump(data, file)
+        print("=====================================================================\n\n")
+
+                
+
 
 """
 Class-based Callback inference for integration with Lightning
@@ -44,6 +113,8 @@ class EmbeddingTelemetry(Callback):
         self.pt_true_pos = []
         self.pt_true = []
         self.distances = []
+        self.eff = []
+        self.pur = []
 
     def on_test_batch_end(
         self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
@@ -52,6 +123,7 @@ class EmbeddingTelemetry(Callback):
         """
         Get the relevant outputs from each batch
         """
+
         pts = batch.pt
         true_positives = outputs["preds"][:, outputs["truth"]]
         true = outputs["truth_graph"]
@@ -76,8 +148,9 @@ class EmbeddingTelemetry(Callback):
         metrics = self.calculate_metrics()
 
         metrics_plots = self.plot_metrics(metrics)
-        
         self.save_metrics(metrics_plots, pl_module.hparams.output_dir)
+        print("eff", self.eff)
+        print("pur", self.pur)
 
     def get_pt_metrics(self):
         
@@ -116,6 +189,10 @@ class EmbeddingTelemetry(Callback):
         eff = true_positives / self.truth_graph.shape[1]
         pur = true_positives / positives
         
+        # TODO: return eff and pur of the stage
+        self.eff = eff
+        self.pur = pur
+
         return eff, pur, r_cuts
         
 
@@ -125,9 +202,11 @@ class EmbeddingTelemetry(Callback):
         
         eff, pur, r_cuts = self.get_eff_pur_metrics()
         
-        return {"pt_plot": {"centers": centers, "ratio_hist": ratio_hist}, 
+        return {
+                "pt_plot": {"centers": centers, "ratio_hist": ratio_hist}, 
                 "eff_plot": {"eff": eff, "r_cuts": r_cuts}, 
-                "pur_plot": {"pur": pur, "r_cuts": r_cuts}}
+                "pur_plot": {"pur": pur, "r_cuts": r_cuts}
+            }
     
     def make_plot(self, x_val, y_val, x_lab, y_lab, title):
         
@@ -151,7 +230,11 @@ class EmbeddingTelemetry(Callback):
         eff_fig, eff_axs = self.make_plot(metrics["eff_plot"]["r_cuts"], metrics["eff_plot"]["eff"], "radius", "Eff", "Efficiency vs. radius")
         pur_fig, pur_axs = self.make_plot(metrics["pur_plot"]["r_cuts"], metrics["pur_plot"]["pur"], "radius", "Pur", "Purity vs. radius")
         
-        return {"pt_plot": [pt_fig, pt_axs], "eff_plot": [eff_fig, eff_axs], "pur_plot": [pur_fig, pur_axs]}
+        return {
+            "pt_plot": [pt_fig, pt_axs], 
+            "eff_plot": [eff_fig, eff_axs], 
+            "pur_plot": [pur_fig, pur_axs]
+        }
     
     def save_metrics(self, metrics_plots, output_dir):
         

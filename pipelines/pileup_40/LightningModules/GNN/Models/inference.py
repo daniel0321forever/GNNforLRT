@@ -5,6 +5,7 @@ import logging
 import tracemalloc
 import gc
 from memory_profiler import profile
+from pytorch_lightning import LightningModule, Trainer
 
 from pytorch_lightning.callbacks import Callback
 import torch.nn.functional as F
@@ -12,6 +13,116 @@ import sklearn.metrics
 import matplotlib.pyplot as plt
 import torch
 import numpy as np
+import yaml
+
+class Plotting(Callback):
+    def __init__(self):
+        super().__init__()
+        print("Plotting")
+    
+    def on_test_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        self.effs = []
+        self.purs = []
+
+class GNNEffPur(Callback):
+
+    def __init__(self):
+        super().__init__()
+        print("Calculating pur and eff")
+
+    def on_test_start(self, trainer, pl_module) -> None:
+        """
+        This hook is automatically called when the model is tested after training. The best checkpoint is automatically loaded
+        """
+        self.preds = []
+        self.truth = []
+        self.eff = []
+        self.pur = []
+        
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+
+        """
+        Get the relevant outputs from each batch
+        """
+        
+        
+        self.preds.append(outputs["preds"].cpu())
+        self.truth.append(outputs["truth"].cpu())
+
+    def on_test_end(self, trainer, pl_module):
+
+        """
+        1. Aggregate all outputs,
+        2. Calculate the ROC curve,
+        3. Plot ROC curve,
+        4. Save plots to PDF 'metrics.pdf'
+        """
+        
+        self.truth = torch.cat(self.truth)
+        self.preds = torch.cat(self.preds)
+        
+        score_cuts = np.arange(0., 1., 0.05)
+        
+        positives = np.array([(self.preds > score_cut).sum() for score_cut in score_cuts])
+        print(type(self.truth))
+        true_positives = np.array([((self.preds > score_cut).to(dtype=torch.bool) & self.truth.to(dtype=torch.bool)).sum() for score_cut in score_cuts])
+                
+        eff = true_positives / self.truth.sum()
+        pur = true_positives / positives
+        
+        # TODO: return eff and pur of the stage
+        self.eff = eff
+        self.pur = pur
+        
+        print("\n\n=====================================================================")
+        print("eff", self.eff.mean())
+        print("pur", self.pur.mean())
+        data = {"gnn_eff": self.eff.mean().item(), "gnn_pur": self.pur.mean().item()}
+        with open("tmp.yaml", 'a') as file:
+            yaml.dump(data, file)
+        print("=====================================================================\n\n")
+
+        # =================================================================================
+        ##############################  Start Plotting ####################################
+        # =================================================================================
+
+        print("plotting...")
+        with open("tmp.yaml", 'r') as file:
+            datas = yaml.load(file, yaml.FullLoader)
+
+        effs = [
+            datas["emb_eff"],
+            datas["fil_eff"],
+            datas['gnn_eff'],
+        ]
+
+        purs = [
+            datas["emb_pur"],
+            datas["fil_pur"],
+            datas["gnn_pur"],
+        ]
+
+        x = np.arange(3)
+
+        fig, ax = plt.subplots(nrows=2, figsize=(9, 12))
+        ax1, ax2 = ax
+        ax1.set_title("Stage Efficiency")
+        ax1.plot(effs)
+        ax1.set_ylabel("Efficieny")
+        ax1.set_xticks(x, ["embedding", "filtering", "GNN"])
+        for i, j in zip(x, effs):
+            ax1.annotate(f"{j:.3f}", xy=(i, j))
+
+        ax2.set_title("Stage Purity")
+        ax2.plot(purs)
+        ax2.set_ylabel("Purity")
+        ax2.set_xticks(x, ["embedding", "filtering", "GNN"])
+        for i, j in zip(x, purs):
+            ax2.annotate(f"{j:.3f}", xy=(i, j))
+
+        fig.savefig("stage_performance.png")
+        os.remove("tmp.yaml")
+
 
 """
 Class-based Callback inference for integration with Lightning
@@ -157,9 +268,7 @@ class GNNBuilder(Callback):
                         )
                     ) or self.overwrite:
                         batch_to_save = copy.deepcopy(batch)
-                        batch_to_save = batch_to_save.to(
-                            pl_module.device
-                        )  # Is this step necessary??
+                        batch_to_save = batch_to_save.to(pl_module.device)
                         self.construct_downstream(batch_to_save, pl_module, datatype)
 
                     batch_incr += 1
@@ -200,6 +309,9 @@ class GNNBuilder(Callback):
         )
 
         truth = (
+            # edge_index: the list of the indices of the two nodes
+            # pid[edge_index[0]]: the list of pid of the first node (a[0, 2, 1, 1, 2] -> [a[0], a[2], a[1], .....])
+            # this line actually return [1, 1, 0, 1, 0, 0, 1, 1, ...], a boolean list of whether the first node and the second node are the same
             (batch.pid[batch.edge_index[0]] == batch.pid[batch.edge_index[1]]).float()
             if "pid" in pl_module.hparams["regime"]
             else batch.y

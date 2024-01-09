@@ -12,6 +12,66 @@ import sklearn.metrics
 import matplotlib.pyplot as plt
 import torch
 import numpy as np
+import yaml
+
+class FilterGetPurEff(Callback):
+    
+    def __init__(self):
+        super().__init__()
+        print("Calculating pur and eff...")
+
+    def on_test_start(self, trainer, pl_module):
+        """
+        This hook is automatically called when the model is tested after training. The best checkpoint is automatically loaded
+        """
+        self.preds = []
+        self.truth = []
+        self. = []
+        self.pur = []
+        
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+
+        """
+        Get the relevant outputs from each batch
+        """
+        
+        self.preds.append(outputs["preds"].cpu())
+        self.truth.append(outputs["truth"].cpu())
+
+    def on_test_end(self, trainer, pl_module):
+
+        """
+        1. Aggregate all outputs,
+        2. Calculate the ROC curve,
+        3. Plot ROC curve,
+        4. Save plots to PDF 'metrics.pdf'
+        """
+                                
+        self.truth = torch.cat(self.truth)
+        self.preds = torch.cat(self.preds)
+        
+        score_cuts = np.arange(0., 1., 0.05)
+        
+        positives = np.array([(self.preds > score_cut).sum() for score_cut in score_cuts])
+        true_positives = np.array([((self.preds > score_cut) & self.truth).sum() for score_cut in score_cuts])
+                
+        eff = true_positives / self.truth.sum()
+        pur = true_positives / positives
+                
+        
+        # TODO: return eff and pur of the stage
+        self.eff = eff
+        self.pur = pur
+        
+        print("\n\n=====================================================================")
+        print("FILTER STAGE")
+        print("eff", self.eff.mean().item())
+        print("pur", self.pur.mean().item())
+        data = {"fil_eff": self.eff.mean().item(), "fil_pur": self.pur.mean().item()}
+        with open("tmp.yaml", 'a') as file:
+            yaml.dump(data, file)
+        print("=====================================================================\n\n")
+
 
 """
 Class-based Callback inference for integration with Lightning
