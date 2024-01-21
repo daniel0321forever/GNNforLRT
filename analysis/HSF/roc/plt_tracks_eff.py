@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
+logging.basicConfig(level=print, format='%(levelname)s:%(message)s')
 
 import torch
 from torch_geometric.data import Data
