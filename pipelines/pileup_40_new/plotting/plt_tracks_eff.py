@@ -24,7 +24,7 @@ sys.path.append("../../")
 
 config = {
 
-    "input_dir": "../dataset/GNN/",
+    "input_dir": "/global/cfs/cdirs/m3443/usr/daniel/dataset/gnn/",
 
     # track building configs
     "score_cut": 0.9,

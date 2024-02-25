@@ -1,6 +1,6 @@
 # Input/output configuration
-input_dir: dataset/embedding 
-output_dir: dataset/filtering
+input_dir: $CFS/m3443/usr/daniel/dataset/embedding 
+output_dir: $CFS/m3443/usr/daniel/dataset/filter
 project: LRT_Filter
 filter_cut: 0.05
 overwrite: True
@@ -31,7 +31,7 @@ lr: 0.000001
 factor: 0.3
 patience: 20
 regime: [[non-ci, non-ci]] # probably should add PID into the regime
-max_epochs: 3
+max_epochs: 100
 
 # Post-processing
 callbacks: [FilterInferenceCallback, FilterGetPurEff]

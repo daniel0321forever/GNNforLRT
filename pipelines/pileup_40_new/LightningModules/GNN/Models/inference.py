@@ -112,7 +112,10 @@ class GNNEffPur(Callback):
             ax2.annotate(f"{j:.3f}", xy=(i, j))
 
         fig.savefig("stage_performance.png")
-        os.remove("tmp.yaml")
+
+
+        print("all done removing tmp.yaml")
+#        os.remove("tmp.yaml")
 
 
 """

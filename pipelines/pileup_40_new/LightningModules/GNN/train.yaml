@@ -1,15 +1,15 @@
 # Input/output configuration
-input_dir: dataset/filtering
-output_dir: dataset/GNN
+input_dir: $CFS/m3443/usr/daniel/dataset/filter
+output_dir: $CFS/m3443/usr/daniel/dataset/gnn
 project: LRT_GNN
-edge_cut: 0.05 # 0.5
+edge_cut: 0.5 # 0.5
 overwrite: True
 
 # Dataset parameters
 pt_background_min: 0.0
 pt_signal_min: 0.0
 datatype_names: [[train, val, test]] # Which directory prefixes to use, assuming at least a train dataset 
-datatype_split: [[900, 50, 50]] # Number of [training, validation, testing] examples
+datatype_split: [[900, 49, 50]] # Number of [training, validation, testing] examples
 endcaps: True
 true_edges: layerless_true_edges
 noise: True
@@ -31,7 +31,7 @@ lr: 0.001
 factor: 0.3
 patience: 20
 regime: [[]]
-max_epochs: 3
+max_epochs: 100
 slack_alert: False
 
 checkpoint_path: lightning_checkpoints

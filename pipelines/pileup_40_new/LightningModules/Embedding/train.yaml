@@ -1,6 +1,7 @@
 # Input/output configuration
-input_dir: /media/daniel0321/LargeFiles/datasets/TrackML/TTbar_Pt1GeV_PU40_5000Events/
-output_dir: dataset/embedding
+# input_dir: /media/daniel0321/LargeFiles/datasets/TrackML/TTbar_Pt1GeV_PU40_5000Events/
+input_dir: $CFS/m3443/usr/daniel/raw_dataset/HNL_output_PU40_npz
+output_dir: $CFS/m3443/usr/daniel/dataset/embedding
 project: LRT_Embedding
 overwrite: True
 
@@ -30,7 +31,7 @@ lr: 0.0001
 factor: 0.3
 patience: 10
 regime: [[rp, hnm]]
-max_epochs: 1
+max_epochs: 20
 
 # Inference
 checkpoint_path: lightning_checkpoints

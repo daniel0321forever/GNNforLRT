@@ -3,6 +3,7 @@
 
 import numpy as np
 import torch
+import os
 from datetime import datetime
 from matplotlib import pyplot as plt
 
@@ -12,17 +13,40 @@ from ExaTrkXPlotting import Plotter, PlotConfig
 # Include performance plots.
 import ExaTrkXPlots.performance
 
+def load_data(datas_dir: str):
+    
+    truths = []
+    scores = []
+    
+    data_paths = os.listdir(datas_dir)
+    print(data_paths)
+
+    for data_path in data_paths:
+        data_path = os.path.join(datas_dir, data_path)
+        data = torch.load(data_path)
+        truths.append(data['truth'])
+        scores.append(data['score'])
+
+    truths = torch.concat(truths, dim=-1).cpu().numpy()
+    scores = torch.concat(scores, dim=-1).cpu().numpy()
+
+    return truths, scores
+
 if __name__ == '__main__':
     fig, ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)
 
-    data = torch.load('../dataset/GNN/test/0125')
-    truth, score = data['truth'], data['score']
-    print("truth: ", truth.shape)
-    print("score: ", score.shape)
+    #data = torch.load('/global/cfs/cdirs/m3443/usr/daniel/dataset/gnn/test/0125')
+   # truth, score = data['truth'], data['score']
+  #  print("truth: ", truth.shape)
+ #   print("score: ", score.shape)
 
-    truth = truth.cpu().numpy()
-    score = score.cpu().numpy()
-    
+#    truth = truth.cpu().numpy()
+#    score = score.cpu().numpy()
+
+    truths, scores = load_data('/global/cfs/cdirs/m3443/usr/daniel/dataset/gnn/test')
+    print(truths.shape)
+    print(scores.shape)
+
     # You can also precompute values and pass to plotter in data
     # to avoid multiple computation in each plot if many plots share same data.
     """
@@ -55,7 +79,7 @@ if __name__ == '__main__':
             )
         },
         data={
-            'truth': truth,
-            'score': score
+            'truth': truths,
+            'score': scores
         }
-    ).plot(save=f"../metrics/pileup_40/performance_{datetime.now().strftime('%Y%m%d_%H%M')}.png")
+    ).plot(save=f"../metrics/performance_{datetime.now().strftime('%Y%m%d_%H%M')}.png")

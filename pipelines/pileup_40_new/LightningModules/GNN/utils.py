@@ -19,10 +19,20 @@ def load_dataset(input_dir, num, pt_background_cut, pt_signal_cut, true_edges, n
     if input_dir is not None:
         all_events = os.listdir(input_dir)
         all_events = sorted([os.path.join(input_dir, event) for event in all_events])
-        loaded_events = [
-            torch.load(event, map_location=torch.device("cpu"))
-            for event in all_events[:num]
-        ]
+
+#        loaded_events = [
+#            torch.load(event, map_location=torch.device("cpu"))
+#            for event in all_events[:num]
+#        ]
+        
+        loaded_events = []
+        for event in all_events[:num]:
+            print("processing event", event)
+            try:
+                loaded_events.append(torch.load(event, map_location=torch.device("cpu")))
+            except Exception as e:
+                print(e)
+
         loaded_events = select_data(loaded_events, pt_background_cut, pt_signal_cut, true_edges, noise)
         return loaded_events
     else:
