@@ -1,0 +1,40 @@
+# Input/output configuration
+# input_dir: /media/daniel0321/LargeFiles/datasets/TrackML/TTbar_Pt1GeV_PU40_5000Events/
+input_dir: $CFS/m3443/usr/daniel/raw_dataset/HNL_output_noPU_npz
+output_dir: $CFS/m3443/usr/daniel/dataset/embedding
+project: LRT_Embedding
+overwrite: True
+
+# Dataset parameters
+pt_signal_min: 0
+pt_background_min: 0
+train_split: [[4500, 300, 200]] # Number of [training, validation, testing] examples
+true_edges: layerless_true_edges
+noise: True
+
+# Model parameters
+in_channels: 3
+emb_hidden: 512
+nb_layer: 6
+emb_dim: 8
+weight: 10
+randomisation: 2
+batch_size: 1
+points_per_batch: 100000
+r_train: 1.6
+r_val: 1.6
+r_test: 1.6
+knn: 20
+warmup: 80
+margin: 1
+lr: 0.0001
+factor: 0.3
+patience: 10
+regime: [[rp, hnm]]
+max_epochs: 20
+
+# Inference
+checkpoint_path: lightning_checkpoints
+
+# Postprocessing
+callbacks: [EmbeddingPurEff, EmbeddingBuilder]  
