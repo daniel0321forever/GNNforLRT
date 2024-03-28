@@ -1,0 +1,46 @@
+evtid:
+  range: [0, 5000]
+
+event:
+  files:
+    embedding_processed:
+      file: "models/HSF/embedding_processed/test/{evtid:04}"
+      parser: pyg.pickle
+
+    particles:
+      file: "10k+5k/test/particles/event{evtid:09}-particles.csv"
+      parser: pandas.csv
+
+  data:
+    hits:
+      embedding_processed:
+        hit_id: hid
+        particle_id: pid
+
+    particles:
+      particles:
+        particle_id: particle_id
+        particle_type: particle_type
+        charge: q
+        # Parent information.
+        parent_ptype: parent_pid
+        # Production vertex.
+        vx: vx
+        vy: vy
+        vz: vz
+        # Momentum.
+        px: px
+        py: py
+        pz: pz
+
+    edges:
+      embedding_processed:
+        sender:
+          tag: edge_index
+          processing:
+            - select: { row: 0 }
+        receiver:
+          tag: edge_index
+          processing:
+            - select: { row: 1 }
+        truth: y

@@ -1,0 +1,40 @@
+checkpoints:
+  list: ["models/HSF/lightning_checkpoints"]
+
+gnn_arch:
+  list:
+    - "ResAGNN+ReLU"
+    - "ResAGNN+SiLU"
+    - "InteractionGNN+ReLU"
+    - "InteractionGNN+SiLU"
+    - "VanillaGCN+ReLU"
+    - "VanillaGCN+SiLU"
+
+event:
+  files:
+    gnn_log:
+      file: "{checkpoints}/LRT_GNN/{gnn_arch}"
+      parser: tb.log
+
+  data:
+    gnn_train:
+      gnn_log:
+        loss:
+          tag: train_loss
+          processing:
+            - select: { column: 2 }
+
+    gnn_val:
+      gnn_log:
+        loss:
+          tag: val_loss
+          processing:
+            - select: { column: 2 }
+        purity:
+          tag: pur
+          processing:
+            - select: { column: 2 }
+        efficiency:
+          tag: eff
+          processing:
+            - select: { column: 2 }

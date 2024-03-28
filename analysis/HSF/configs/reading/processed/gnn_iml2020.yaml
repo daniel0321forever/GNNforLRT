@@ -1,0 +1,45 @@
+evtid:
+  range: [0, 5000]
+
+event:
+  files:
+    gnn_processed:
+      file: "/Users/ianwang/Documents/LongLivedParticleTracking/exatrkx-iml2020-main/data/NoPileUp_5K_withTruth/gnn_eval/test/{evtid}.npz"
+      parser: numpy.npz
+
+    hits:
+      file: "/Users/ianwang/Documents/LongLivedParticleTracking/ExatrkxAnalysis/data/10k+5k/test/feature_store/{evtid}"
+      parser: pyg.pickle
+
+    particles:
+      file: "10k+5k/test/particles/event{evtid:09}-particles.csv"
+      parser: pandas.csv
+
+  data:
+    hits:
+      hits:
+        hit_id: hid
+        particle_id: pid
+
+    particles:
+      particles:
+        particle_id: particle_id
+        particle_type: particle_type
+        charge: q
+        # Parent information.
+        parent_ptype: parent_pid
+        # Production vertex.
+        vx: vx
+        vy: vy
+        vz: vz
+        # Momentum.
+        px: px
+        py: py
+        pz: pz
+
+    edges:
+      gnn_processed:
+        sender: senders
+        receiver: receivers
+        truth: truth
+        score: score

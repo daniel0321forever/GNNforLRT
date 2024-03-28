@@ -1,9 +1,9 @@
-pipelines/*/raw_dataset/
+model/*/raw_dataset/
 
-pipelines/*/dataset/*/train
-pipelines/*/dataset/*/val
-pipelines/*/dataset/*/test
+model/*/dataset/*/train
+model/*/dataset/*/val
+model/*/dataset/*/test
 
-pipelines/*/lightning_checkpoints/LRT*
+model/lightning_checkpoints
 
 sample_conversion/conversion_script/output_HNL/train_all/*
