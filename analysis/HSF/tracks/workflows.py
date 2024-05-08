@@ -19,7 +19,7 @@ from track_matching import match_tracks
 
 def reconstruct_and_match_tracks(
     data,
-    epsilon=0.1,
+    epsilon=0.6,
     statistics=False
 ):
     """

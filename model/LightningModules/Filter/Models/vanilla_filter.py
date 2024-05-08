@@ -27,7 +27,8 @@ class VanillaFilter(FilterBaseBalanced):
 
         # Construct the MLP architecture
         self.input_layer = Linear(
-            hparams["in_channels"] * 2 + hparams["emb_channels"] * 2, hparams["hidden"]
+            hparams["in_channels"] * 2 +
+            hparams["emb_channels"] * 2, hparams["hidden"]
         )
         layers = [
             Linear(hparams["hidden"], hparams["hidden"])
@@ -111,48 +112,59 @@ class FilterInferenceCallback(Callback):
                         batch_to_save = self.construct_downstream(
                             batch_to_save, pl_module
                         ).to("cpu")
-                        self.save_downstream(batch_to_save, pl_module, datatype)
+                        self.save_downstream(
+                            batch_to_save, pl_module, datatype)
 
                     batch_incr += 1
 
     def construct_downstream(self, batch, pl_module):
-
         """
         This contains the bulk of pipeline logic for this stage
         """
 
-        if batch.edge_index.shape[1] <= 10:
-            return None
-
         emb = (
-            None if (pl_module.hparams["emb_channels"] == 0) else batch.embedding
+            None if (pl_module.hparams["emb_channels"]
+                     == 0) else batch.embedding
         )  # Does this work??
 
-        # TODO: should initialize hparams in the class 
-        sections = 2
-        cut_list = []
-        for j in range(sections):
-            subset_ind = torch.chunk(torch.arange(batch.edge_index.shape[1]), sections)[
-                j
-            ]
+        if batch.edge_index.shape[1] <= 10:
             output = (
                 pl_module(
                     torch.cat([batch.cell_data, batch.x], axis=-1),
-                    batch.edge_index[:, subset_ind],
+                    batch.edge_index[:, :],
                     emb,
                 ).squeeze()
                 if ("ci" in pl_module.hparams["regime"])
-                else pl_module(batch.x, batch.edge_index[:, subset_ind], emb).squeeze()
+                else pl_module(batch.x, batch.edge_index[:, :], emb).squeeze()
             )
-            cut = F.sigmoid(output) > pl_module.hparams["filter_cut"]
-            cut_list.append(cut)
+            cut_list = F.sigmoid(output) > pl_module.hparams["filter_cut"]
 
-        cut_list = torch.cat(cut_list)
+        else:
+            sections = 2
+            cut_list = []
+            for j in range(sections):
+                subset_ind = torch.chunk(torch.arange(batch.edge_index.shape[1]), sections)[
+                    j
+                ]
+                output = (
+                    pl_module(
+                        torch.cat([batch.cell_data, batch.x], axis=-1),
+                        batch.edge_index[:, subset_ind],
+                        emb,
+                    ).squeeze()
+                    if ("ci" in pl_module.hparams["regime"])
+                    else pl_module(batch.x, batch.edge_index[:, subset_ind], emb).squeeze()
+                )
+                cut = F.sigmoid(output) > pl_module.hparams["filter_cut"]
+                cut_list.append(cut)
+
+            cut_list = torch.cat(cut_list)
 
         if "pid" not in pl_module.hparams["regime"]:
             batch.y = batch.y[cut_list]
 
-        y_pid = batch.pid[batch.edge_index[0]] == batch.pid[batch.edge_index[1]]
+        y_pid = batch.pid[batch.edge_index[0]
+                          ] == batch.pid[batch.edge_index[1]]
         batch.y_pid = y_pid[cut_list]
         batch.edge_index = batch.edge_index[:, cut_list]
         if "weighting" in pl_module.hparams["regime"]:
@@ -163,6 +175,7 @@ class FilterInferenceCallback(Callback):
     def save_downstream(self, batch, pl_module, datatype):
 
         with open(
-            os.path.join(self.output_dir, datatype, batch.event_file[-4:]), "wb"
+            os.path.join(self.output_dir, datatype,
+                         batch.event_file[-4:]), "wb"
         ) as pickle_file:
             torch.save(batch, pickle_file)

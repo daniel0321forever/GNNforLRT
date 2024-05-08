@@ -100,6 +100,9 @@ class GNNBase(LightningModule):
         return optimizer, scheduler
 
     def training_step(self, batch, batch_idx):
+        if (batch.edge_index.ndim > 2):
+            return None
+        
         torch.cuda.empty_cache() # empty gpu cashe
 
         weight = (
@@ -139,7 +142,12 @@ class GNNBase(LightningModule):
         return loss
 
     def shared_evaluation(self, batch, batch_idx, log=False):
-
+        if (batch.edge_index.ndim > 2):
+            return {
+                    "loss": 0,
+                    "preds": None,
+                    "truth": None,
+                    }
         weight = (
             torch.tensor(self.hparams["weight"])
             if ("weight" in self.hparams)

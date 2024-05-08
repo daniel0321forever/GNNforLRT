@@ -44,7 +44,11 @@ class EdgeNetwork(nn.Module):
         start, end = edge_index
         x1, x2 = x[start], x[end]
         edge_inputs = torch.cat([x[start], x[end]], dim=1)
-        return self.network(edge_inputs).squeeze(-1)
+        try:
+            return self.network(edge_inputs).squeeze(-1)
+        except:
+            edge_inputs = edge_inputs.flatten(-2,-1)
+            return self.network(edge_inputs).squeeze(-1)
 
 
 class NodeNetwork(nn.Module):
@@ -74,6 +78,8 @@ class NodeNetwork(nn.Module):
         )
 
     def forward(self, x, e, edge_index):
+        if edge_index.ndim > 2:
+            edge_index = edge_index.flatten(-2, -1)
         start, end = edge_index
         # Aggregate edge-weighted incoming/outgoing features
         #         mi = scatter_add(e[:, None] * x[start], end, dim=0, dim_size=x.shape[0])
@@ -84,7 +90,6 @@ class NodeNetwork(nn.Module):
         ) + scatter_add(e[:, None] * x[end], start, dim=0, dim_size=x.shape[0])
         node_inputs = torch.cat([messages, x], dim=1)
         return self.network(node_inputs)
-
 
 class ResAGNN(GNNBase):
     def __init__(self, hparams):
