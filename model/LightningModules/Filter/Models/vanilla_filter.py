@@ -138,7 +138,7 @@ class FilterInferenceCallback(Callback):
                 else pl_module(batch.x, batch.edge_index[:, :], emb).squeeze()
             )
             cut_list = F.sigmoid(output) > pl_module.hparams["filter_cut"]
-
+            print("small graph", cut_list.shape)
         else:
             sections = 2
             cut_list = []
@@ -159,7 +159,7 @@ class FilterInferenceCallback(Callback):
                 cut_list.append(cut)
 
             cut_list = torch.cat(cut_list)
-
+            print("normal", cut_list.shape)
         if "pid" not in pl_module.hparams["regime"]:
             batch.y = batch.y[cut_list]
 

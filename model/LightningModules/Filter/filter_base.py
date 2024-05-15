@@ -454,7 +454,7 @@ class FilterBaseBalanced(FilterBase):
             None if (self.hparams["emb_channels"] == 0) else batch.embedding
         )  # Does this work??
 
-        if batch.edge_index.shape[1] < 10:
+        if batch.edge_index.shape[1] > 10:
 
             score_list = []
             val_loss = torch.tensor(0).to(self.device)
@@ -462,15 +462,18 @@ class FilterBaseBalanced(FilterBase):
                 subset_ind = torch.chunk(torch.arange(batch.edge_index.shape[1]), self.hparams["n_chunks"])[
                     j
                 ]
+
                 output = (
                     self(
                         torch.cat([batch.cell_data, batch.x], axis=-1),
                         batch.edge_index[:, subset_ind],
                         emb,
-                    ).squeeze()
+                    )
                     if ("ci" in self.hparams["regime"])
-                    else self(batch.x, batch.edge_index[:, subset_ind], emb).squeeze()
+                    else self(batch.x, batch.edge_index[:, subset_ind], emb)
                 )
+
+                output = output.squeeze(dim=-1)
                 scores = F.sigmoid(output)
                 score_list.append(scores)
 
@@ -502,9 +505,9 @@ class FilterBaseBalanced(FilterBase):
                     torch.cat([batch.cell_data, batch.x], axis=-1),
                     batch.edge_index[:, :],
                     emb,
-                ).squeeze()
+                ).squeeze(dim=-1)
                 if ("ci" in self.hparams["regime"])
-                else self(batch.x, batch.edge_index[:, :], emb).squeeze()
+                else self(batch.x, batch.edge_index[:, :], emb).squeeze(dim=-1)
             )
             score_list = F.sigmoid(output)
 

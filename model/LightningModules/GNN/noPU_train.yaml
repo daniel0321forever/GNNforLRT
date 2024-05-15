@@ -16,11 +16,11 @@ noise: True
 
 # Model parameters
 in_channels: 3
-hidden: 128
+hidden: 256
 batch_size: 1
 n_graph_iters: 8
 nb_node_layer: 5
-nb_edge_layer: 5 # 3
+nb_edge_layer: 8 # 3
 emb_channels: 0
 layernorm: True
 hidden_activation: ReLU
@@ -31,7 +31,7 @@ lr: 0.001
 factor: 0.3
 patience: 10
 regime: [[]]
-max_epochs: 25
+max_epochs: 25 # 25
 slack_alert: False
 
 checkpoint_path: lightning_checkpoints

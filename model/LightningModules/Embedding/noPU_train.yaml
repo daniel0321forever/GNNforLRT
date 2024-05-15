@@ -31,7 +31,7 @@ lr: 0.0001
 factor: 0.58
 patience: 19
 regime: [[rp, hnm, norm]]
-max_epochs: 30
+max_epochs: 30 # 30
 
 # Inference
 checkpoint_path: lightning_checkpoints
