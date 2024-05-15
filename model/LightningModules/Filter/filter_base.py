@@ -1,5 +1,7 @@
 # System imports
-import sys, os
+from .utils import graph_intersection, load_dataset
+import sys
+import os
 from typing import Any, Optional
 
 # 3rd party imports
@@ -17,7 +19,6 @@ import numpy as np
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Local imports
-from .utils import graph_intersection, load_dataset
 
 
 class FilterBase(LightningModule):
@@ -25,7 +26,7 @@ class FilterBase(LightningModule):
         super().__init__()
         """
         Initialise the Lightning Module that can scan over different filter training regimes
-        """ 
+        """
         print("--- Filter Stage ---")
         self.save_hyperparameters(hparams)
         self.summary_dict = {
@@ -43,7 +44,7 @@ class FilterBase(LightningModule):
         ]
         self.trainset, self.valset, self.testset = [
             load_dataset(
-                input_dir, 
+                input_dir,
                 self.hparams["datatype_split"][i],
                 self.hparams["pt_background_min"],
                 self.hparams["pt_signal_min"],
@@ -103,12 +104,14 @@ class FilterBase(LightningModule):
         if self.hparams["ratio"] != 0:
             num_true, num_false = batch.y.bool().sum(), (~batch.y.bool()).sum()
             fake_indices = torch.where(~batch.y.bool())[0][
-                torch.randint(num_false, (num_true.item() * self.hparams["ratio"],))
+                torch.randint(num_false, (num_true.item()
+                              * self.hparams["ratio"],))
             ]
             true_indices = torch.where(batch.y.bool())[0]
             combined_indices = torch.cat([true_indices, fake_indices])
             # Shuffle indices:
-            combined_indices = combined_indices[torch.randperm(len(combined_indices))]
+            combined_indices = combined_indices[torch.randperm(
+                len(combined_indices))]
             positive_weight = (
                 torch.tensor(self.hparams["weight"])
                 if ("weight" in self.hparams)
@@ -169,16 +172,18 @@ class FilterBase(LightningModule):
         cut_list = []
         val_loss = torch.tensor(0)
         for j in range(self.hparams["n_chunks"]):
-            subset_ind = torch.chunk(torch.arange(batch.edge_index.shape[1]), self.hparams["n_chunks"])[j]
+            subset_ind = torch.chunk(torch.arange(
+                batch.edge_index.shape[1]), self.hparams["n_chunks"])[j]
             if ("ci" in self.hparams["regime"]):
                 output = self(
-                        torch.cat([batch.cell_data, batch.x], axis=-1),
-                        batch.edge_index[:, subset_ind],
-                        emb,
-                    ).squeeze()
+                    torch.cat([batch.cell_data, batch.x], axis=-1),
+                    batch.edge_index[:, subset_ind],
+                    emb,
+                ).squeeze()
             else:
-                output = self(batch.x, batch.edge_index[:, subset_ind], emb).squeeze()
-                
+                output = self(
+                    batch.x, batch.edge_index[:, subset_ind], emb).squeeze()
+
             cut = F.sigmoid(output) > self.hparams["filter_cut"]
             cut_list.append(cut)
 
@@ -189,7 +194,7 @@ class FilterBase(LightningModule):
                 manual_weights = None
 
             if "pid" not in self.hparams["regime"]:
-                val_loss =+ F.binary_cross_entropy_with_logits(
+                val_loss = + F.binary_cross_entropy_with_logits(
                     output, batch.y[subset_ind].float(), weight=manual_weights
                 )
             else:
@@ -206,10 +211,11 @@ class FilterBase(LightningModule):
         # Edge filter performance
         edge_positive = cut_list.sum().float()
         if "pid" in self.hparams["regime"]:
-            true_y = batch.pid[batch.edge_index[0]] == batch.pid[batch.edge_index[1]]
+            true_y = batch.pid[batch.edge_index[0]
+                               ] == batch.pid[batch.edge_index[1]]
         else:
             true_y = batch.y
-            
+
         edge_true = true_y.sum()
         edge_true_positive = (true_y.bool() & cut_list).sum().float()
 
@@ -233,19 +239,22 @@ class FilterBase(LightningModule):
         self.summary_dict["val_loss"] += outputs['loss'] / len(self.valset)
 
         return outputs["loss"]
-    
+
     def on_validation_epoch_end(self) -> None:
         # make log dir
         if self.epoch == 1:
             i = 0
-            self.log_dir = os.path.join(self.hparams["checkpoint_path"], f"version{i}")
-            while(os.path.exists(self.log_dir)):
+            self.log_dir = os.path.join(
+                self.hparams["checkpoint_path"], f"version{i}")
+            while (os.path.exists(self.log_dir)):
                 i += 1
-                self.log_dir = os.path.join(self.hparams["checkpoint_path"], f"version{i}")
-            self.log_dir = os.path.join(self.hparams["checkpoint_path"], f"version{i - 1}")
+                self.log_dir = os.path.join(
+                    self.hparams["checkpoint_path"], f"version{i}")
+            self.log_dir = os.path.join(
+                self.hparams["checkpoint_path"], f"version{i - 1}")
 
         self.writer = SummaryWriter(log_dir=self.log_dir)
-        
+
         self.writer.add_scalars(
             "Filtering Loss",
             self.summary_dict,
@@ -257,7 +266,6 @@ class FilterBase(LightningModule):
 
         self.epoch += 1
 
-    
     def test_step(self, batch, batch_idx):
         """
         Step to evaluate the model's performance
@@ -285,7 +293,8 @@ class FilterBase(LightningModule):
             self.trainer.global_step < self.hparams["warmup"]
         ):
             lr_scale = min(
-                1.0, float(self.trainer.global_step + 1) / self.hparams["warmup"]
+                1.0, float(self.trainer.global_step + 1) /
+                self.hparams["warmup"]
             )
             for pg in optimizer.param_groups:
                 pg["lr"] = lr_scale * self.hparams["lr"]
@@ -304,45 +313,63 @@ class FilterBaseBalanced(FilterBase):
 
     def training_step(self, batch, batch_idx):
         if batch.edge_index.shape[1] < 10:
-            return None # skip iteration
+            return None  # skip iteration
 
         emb = (
             None if (self.hparams["emb_channels"] == 0) else batch.embedding
         )  # Does this work??
 
         if "subset" in self.hparams["regime"]:
-            subset_mask = np.isin(batch.edge_index.cpu(), batch.layerless_true_edges.unique().cpu()).any(0)
+            subset_mask = np.isin(batch.edge_index.cpu(
+            ), batch.layerless_true_edges.unique().cpu()).any(0)
             batch.edge_index = batch.edge_index[:, subset_mask]
             batch.y = batch.y[subset_mask]
-            
+
         with torch.no_grad():
-            cut_list = []
 
+            if batch.edge_index.shape[1] > 10:
+                cut_list = []
 
+                for j in range(self.hparams["n_chunks"]):
+                    # get end index of each subset of data divided by n_chunks = 8
+                    subset_ind = torch.chunk(
+                        torch.arange(
+                            batch.edge_index.shape[1]), self.hparams["n_chunks"]
+                    )[j]
 
-            for j in range(self.hparams["n_chunks"]):
-                # get end index of each subset of data divided by n_chunks = 8
-                subset_ind = torch.chunk(
-                    torch.arange(batch.edge_index.shape[1]), self.hparams["n_chunks"]
-                )[j]
-
-                # find model output (filter score of each edge) with input including cell information
-                if ("ci" in self.hparams["regime"]):
-                    output = self(
+                    # find model output (filter score of each edge) with input including cell information
+                    if ("ci" in self.hparams["regime"]):
+                        output = self(
                             torch.cat([batch.cell_data, batch.x], axis=-1),
                             batch.edge_index[:, subset_ind],
                             emb,
                         ).squeeze()
-                # find model output (filter score of each edge) with only coordinates and emb-predicted graph input 
+                    # find model output (filter score of each edge) with only coordinates and emb-predicted graph input
+                    else:
+                        output = self(
+                            batch.x, batch.edge_index[:, subset_ind], emb)
+                        output = output.squeeze(dim=-1)
+                    # if the score of the edge is higher then the score cut, add the edge into cut_list
+                    cut = F.sigmoid(output) > self.hparams["filter_cut"]
+                    cut_list.append(cut)
+
+                # from (n_chunks, 2, num_edge) to (2, num_edges)
+                cut_list = torch.cat(cut_list)
+            else:
+                # find model output (filter score of each edge) with input including cell information
+                if ("ci" in self.hparams["regime"]):
+                    output = self(
+                        torch.cat([batch.cell_data, batch.x], axis=-1),
+                        batch.edge_index[:, :],
+                        emb,
+                    ).squeeze()
+                # find model output (filter score of each edge) with only coordinates and emb-predicted graph input
                 else:
-                    output = self(batch.x, batch.edge_index[:, subset_ind], emb)
+                    output = self(
+                        batch.x, batch.edge_index[:, :], emb)
                     output = output.squeeze(dim=-1)
                 # if the score of the edge is higher then the score cut, add the edge into cut_list
-                cut = F.sigmoid(output) > self.hparams["filter_cut"]
-                cut_list.append(cut)
-
-
-            cut_list = torch.cat(cut_list) # from (n_chunks, 2, num_edge) to (2, num_edges)
+                cut_list = F.sigmoid(output) > self.hparams["filter_cut"]
 
             num_true, num_false = batch.y.bool().sum(), (~batch.y.bool()).sum()
             # where: find the "true" element index. It would be ([[],]) tensor so use [0] to extract
@@ -355,26 +382,28 @@ class FilterBaseBalanced(FilterBase):
             ]
             easy_indices = torch.where(~batch.y.bool())[0][
                 torch.randint(
-                    num_false, (int(num_true.item() * self.hparams["ratio"] / 2),)
+                    num_false, (int(num_true.item() *
+                                self.hparams["ratio"] / 2),)
                 )
             ]
 
-            combined_indices = torch.cat([true_indices, hard_indices, easy_indices])
+            combined_indices = torch.cat(
+                [true_indices, hard_indices, easy_indices])
 
             # Shuffle indices:
             combined_indices[torch.randperm(len(combined_indices))]
             weight = torch.tensor(self.hparams["weight"])
 
-
         # do the inference again, now start calculating gradient
         if ("ci" in self.hparams["regime"]):
             output = self(
-                    torch.cat([batch.cell_data, batch.x], axis=-1),
-                    batch.edge_index[:, combined_indices],
-                    emb,
-                ).squeeze()
+                torch.cat([batch.cell_data, batch.x], axis=-1),
+                batch.edge_index[:, combined_indices],
+                emb,
+            ).squeeze()
         else:
-            output = self(batch.x, batch.edge_index[:, combined_indices], emb).squeeze()
+            output = self(
+                batch.x, batch.edge_index[:, combined_indices], emb).squeeze()
 
         if "weighting" in self.hparams["regime"]:
             manual_weights = batch.weights[combined_indices]
@@ -399,7 +428,7 @@ class FilterBaseBalanced(FilterBase):
                 weight=manual_weights,
                 pos_weight=weight,
             )
-            
+
         self.log_dict({"train_loss": loss})
 
         return loss
@@ -417,66 +446,97 @@ class FilterBaseBalanced(FilterBase):
         return result
 
     def shared_evaluation(self, batch, batch_idx, log=False):
-
         """
         This method is shared between validation steps and test steps
         """
-
-        if batch.edge_index.shape[1] < 10:
-            return None # skip iteration
-
 
         emb = (
             None if (self.hparams["emb_channels"] == 0) else batch.embedding
         )  # Does this work??
 
-        score_list = []
-        val_loss = torch.tensor(0).to(self.device)
-        for j in range(self.hparams["n_chunks"]):
-            subset_ind = torch.chunk(torch.arange(batch.edge_index.shape[1]), self.hparams["n_chunks"])[
-                j
-            ]
+        if batch.edge_index.shape[1] < 10:
+
+            score_list = []
+            val_loss = torch.tensor(0).to(self.device)
+            for j in range(self.hparams["n_chunks"]):
+                subset_ind = torch.chunk(torch.arange(batch.edge_index.shape[1]), self.hparams["n_chunks"])[
+                    j
+                ]
+                output = (
+                    self(
+                        torch.cat([batch.cell_data, batch.x], axis=-1),
+                        batch.edge_index[:, subset_ind],
+                        emb,
+                    ).squeeze()
+                    if ("ci" in self.hparams["regime"])
+                    else self(batch.x, batch.edge_index[:, subset_ind], emb).squeeze()
+                )
+                scores = F.sigmoid(output)
+                score_list.append(scores)
+
+                if "weighting" in self.hparams["regime"]:
+                    manual_weights = batch.weights[subset_ind]
+                    manual_weights[batch.y[subset_ind] == 0] = 1
+                else:
+                    manual_weights = None
+
+                if "pid" not in self.hparams["regime"]:
+                    val_loss = val_loss + F.binary_cross_entropy_with_logits(
+                        output, batch.y[subset_ind].float(), weight=manual_weights
+                    )
+                else:
+                    y_pid = (
+                        batch.pid[batch.edge_index[0, subset_ind]]
+                        == batch.pid[batch.edge_index[1, subset_ind]]
+                    )
+                    val_loss = +F.binary_cross_entropy_with_logits(
+                        output, y_pid.float(), weight=manual_weights
+                    )
+
+            score_list = torch.cat(score_list)
+
+        else:
+            val_loss = torch.tensor(0).to(self.device)
             output = (
                 self(
                     torch.cat([batch.cell_data, batch.x], axis=-1),
-                    batch.edge_index[:, subset_ind],
+                    batch.edge_index[:, :],
                     emb,
                 ).squeeze()
                 if ("ci" in self.hparams["regime"])
-                else self(batch.x, batch.edge_index[:, subset_ind], emb).squeeze()
+                else self(batch.x, batch.edge_index[:, :], emb).squeeze()
             )
-            scores = F.sigmoid(output)
-            score_list.append(scores)
+            score_list = F.sigmoid(output)
 
             if "weighting" in self.hparams["regime"]:
-                manual_weights = batch.weights[subset_ind]
-                manual_weights[batch.y[subset_ind] == 0] = 1
+                manual_weights = batch.weights[:]
+                manual_weights[batch.y[:] == 0] = 1
             else:
                 manual_weights = None
 
             if "pid" not in self.hparams["regime"]:
                 val_loss = val_loss + F.binary_cross_entropy_with_logits(
-                    output, batch.y[subset_ind].float(), weight=manual_weights
+                    output, batch.y[:].float(), weight=manual_weights
                 )
             else:
                 y_pid = (
-                    batch.pid[batch.edge_index[0, subset_ind]]
-                    == batch.pid[batch.edge_index[1, subset_ind]]
+                    batch.pid[batch.edge_index[0, :]]
+                    == batch.pid[batch.edge_index[1, :]]
                 )
                 val_loss = +F.binary_cross_entropy_with_logits(
                     output, y_pid.float(), weight=manual_weights
                 )
 
-        score_list = torch.cat(score_list)
         cut_list = score_list > self.hparams["filter_cut"]
 
         # Edge filter performance
         edge_positive = cut_list.sum().float()
         if "pid" in self.hparams["regime"]:
-            true_y = batch.pid[batch.edge_index[0]] == batch.pid[batch.edge_index[1]]
+            true_y = batch.pid[batch.edge_index[0]
+                               ] == batch.pid[batch.edge_index[1]]
         else:
             true_y = batch.y
-            
+
         edge_true = true_y.sum()
         edge_true_positive = (true_y.bool() & cut_list).sum().float()
 
