@@ -6,10 +6,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.base import BaseEstimator
+from sklearn.model_selection import GridSearchCV
+
 
 from ExaTrkXDataIO import DataReader
-
-import matplotlib.pyplot as plt
 from ExaTrkXPlotting import Plotter, PlotConfig
 from ExaTrkXPlots.tracks import (
     tracks,
@@ -128,7 +131,21 @@ if __name__ == '__main__':
     save = Path('../../output/tracks/')
     save.mkdir(parents=True, exist_ok=True)
 
-    with multiprocessing.Pool(processes=8) as pool:
+    # reader
+    reader = DataReader(
+        # config_path='../configs/reading/processed/gnn.yaml',
+        # config_path='../configs/reading/v4/processed/gnn.yaml',
+        config_path=config_path/'gnn.yaml',
+        base_dir="."
+    )
+
+    epsilons = np.linspace(0.05, 1, 21)
+    best_eps = epsilons[0]
+    best_score = 0
+
+    for epsilon in epsilons:
+        def _reconstruct_and_match_tracks(data):
+            return reconstruct_and_match_tracks(data=data, epsilon=epsilon)
 
         reader = DataReader(
             # config_path='../configs/reading/processed/gnn.yaml',
@@ -137,18 +154,27 @@ if __name__ == '__main__':
             base_dir="."
         )
 
-        particles = pd.concat(
-            pool.map(lambda x: reconstruct_and_match_tracks(
-                data=x, epsilon=0.6), reader.read())
-        )
+        with multiprocessing.Pool(processes=8) as pool:
 
-    print(particles)
+            particles: pd.DataFrame = pd.concat(
+                pool.map(_reconstruct_and_match_tracks,
+                         reader.read(silent_skip=True))
+            )
 
-    # All.
-    plot_tracks(
-        particles,
-        save=save / 'all.pdf'
-    )
+        matched = particles["is_matched"].value_counts().get("True", 0)
+        print(matched)
+
+        if matched > best_score:
+            best_score = matched
+            best_eps = epsilon
+
+    print(best_eps)
+
+    # # All.
+    # plot_tracks(
+    #     particles,
+    #     save=save / 'all.pdf'
+    # )
 
     # FIXME: The plot below requres parent type data, which is used to seperate displaced and prompt data
     # Displaced.
