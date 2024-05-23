@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
         with multiprocessing.Pool(processes=8) as pool:
 
-            particles: pd.DataFrame = pd.concat(
+            particles = pd.concat(
                 pool.map(_reconstruct_and_match_tracks,
                          reader.read(silent_skip=True))
             )
