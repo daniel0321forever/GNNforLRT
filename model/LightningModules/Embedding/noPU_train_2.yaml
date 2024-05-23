@@ -1,7 +1,7 @@
 # Input/output configuration
 # input_dir: /media/daniel0321/LargeFiles/datasets/TrackML/TTbar_Pt1GeV_PU40_5000Events/
 input_dir: $CFS/m3443/usr/daniel/raw_dataset/HNL_output_noPU_npz
-output_dir: $CFS/m3443/usr/daniel/dataset/embedding_1
+output_dir: $CFS/m3443/usr/daniel/dataset/embedding_2
 project: LRT_Embedding
 overwrite: True
 

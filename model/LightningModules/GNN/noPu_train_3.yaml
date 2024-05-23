@@ -1,6 +1,6 @@
 # Input/output configuration
-input_dir: $CFS/m3443/usr/daniel/dataset/filter_1
-output_dir: $CFS/m3443/usr/daniel/dataset/gnn_1
+input_dir: $CFS/m3443/usr/daniel/dataset/filter_3
+output_dir: $CFS/m3443/usr/daniel/dataset/gnn_3
 project: LRT_GNN
 edge_cut: 0.5 # 0.5
 overwrite: True
@@ -9,14 +9,14 @@ overwrite: True
 pt_background_min: 0.0
 pt_signal_min: 0.0
 datatype_names: [[train, val, test]] # Which directory prefixes to use, assuming at least a train dataset 
-datatype_split: [[4000, 500, 500]] # Number of [training, validation, testing] examples
+datatype_split: [[900, 100, 500]] # Number of [training, validation, testing] examples
 endcaps: True
 true_edges: layerless_true_edges
 noise: True
 
 # Model parameters
 in_channels: 3
-hidden: 256
+hidden: 512
 batch_size: 1
 n_graph_iters: 8
 nb_node_layer: 5
