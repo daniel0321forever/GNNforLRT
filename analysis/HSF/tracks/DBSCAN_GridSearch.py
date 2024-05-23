@@ -140,7 +140,6 @@ if __name__ == '__main__':
     )
 
     epsilons = np.linspace(0.05, 1, 21)
-    best_eps = epsilons[0]
     best_score = 0
 
     for epsilon in epsilons:
@@ -164,17 +163,16 @@ if __name__ == '__main__':
         matched = particles["is_matched"].value_counts().get("True", 0)
         print(matched)
 
-        if matched > best_score:
+        if matched >= best_score:
             best_score = matched
             best_eps = epsilon
+            best_particle = particles
 
-    print(best_eps)
-
-    # # All.
-    # plot_tracks(
-    #     particles,
-    #     save=save / 'all.pdf'
-    # )
+    # All.
+    plot_tracks(
+        best_particle,
+        save=save / 'all.pdf'
+    )
 
     # FIXME: The plot below requres parent type data, which is used to seperate displaced and prompt data
     # Displaced.
