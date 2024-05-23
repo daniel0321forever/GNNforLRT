@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import GridSearchCV
@@ -139,7 +140,7 @@ if __name__ == '__main__':
         base_dir="."
     )
 
-    epsilons = np.linspace(0.05, 1, 21)
+    epsilons = np.linspace(0.01, 1, 20)
     best_score = 0
 
     for epsilon in epsilons:
@@ -159,8 +160,8 @@ if __name__ == '__main__':
                 pool.map(_reconstruct_and_match_tracks,
                          reader.read(silent_skip=True))
             )
-
-        matched = particles["is_matched"].value_counts().get("True", 0)
+        
+        matched = len(particles[particles.is_trackable & particles.is_matched])
         print(matched)
 
         if matched >= best_score:
@@ -168,10 +169,11 @@ if __name__ == '__main__':
             best_eps = epsilon
             best_particle = particles
 
+    print("The best epsilon is ", best_eps)
     # All.
     plot_tracks(
         best_particle,
-        save=save / 'all.pdf'
+        save=save / f'all_{datetime.now().isoformat()}.pdf'
     )
 
     # FIXME: The plot below requres parent type data, which is used to seperate displaced and prompt data
