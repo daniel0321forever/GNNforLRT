@@ -3,7 +3,7 @@
 #SBATCH -C gpu
 #SBATCH -G 4
 #SBATCH -q regular
-#SBATCH -J HNL_PU40_train
+#SBATCH -J HNL_PU0_train2
 #SBATCH --mail-user=daniel.bb0321@gmail.com
 #SBATCH --mail-type=ALL
 #SBATCH -t 16:30:00
@@ -19,5 +19,5 @@ export OMP_PROC_BIND=spread
 module load conda
 conda activate trackml
 
-srun --ntasks-per-node 4 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/noPU_pipeline_1.yaml
+srun --ntasks-per-node 4 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/noPU_pipeline_2.yaml
 
