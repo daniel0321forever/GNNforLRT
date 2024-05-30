@@ -76,11 +76,20 @@ class EmbeddingPurEff(Callback):
         print("eff dominator", self.truth_graph.shape[1])
         print("eff", eff)
         print("pur", pur)
-        with open(pl_module.hparams["performance_path"], 'rw') as file:
-            data = yaml.load(file, yaml.FullLoader)
-            data["emb_eff"] = eff.item()
-            data["emb_pur"] = pur.item()
-            yaml.dump(data, file)
+
+        if os.path.exists(pl_module.hparams["performance_path"]):
+            with open(pl_module.hparams["performance_path"], 'r+') as file:
+                data = yaml.load(file, yaml.FullLoader)
+                data["emb_eff"] = eff.item()
+                data["emb_pur"] = pur.item()
+                file.seek(0)
+                yaml.dump(data, file)
+        else:
+            with open(pl_module.hparams["performance_path"], "w") as file:
+                data = {}
+                data["emb_eff"] = eff.item()
+                data["emb_pur"] = pur.item()
+                yaml.dump(data, file)
         print("=====================================================================\n\n")
 
 

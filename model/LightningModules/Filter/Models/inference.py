@@ -64,10 +64,11 @@ class FilterGetPurEff(Callback):
         print("eff dominator", self._true)
         print("eff", eff)
         print("pur", pur)
-        with open(pl_module.hparams["performance_path"], 'rw') as file:
+        with open(pl_module.hparams["performance_path"], 'r+') as file:
             data = yaml.load(file, yaml.FullLoader)
             data["fil_eff"] = eff.item()
             data["fil_pur"] = pur.item()
+            file.seek(0)
             yaml.dump(data, file)
         print("=====================================================================\n\n")
 

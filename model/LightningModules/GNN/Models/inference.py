@@ -68,10 +68,11 @@ class GNNEffPur(Callback):
         print("eff dominator", self._true)
         print("eff", eff.item())
         print("pur", pur.item())
-        with open(pl_module.hparams["performance_path"], 'rw') as file:
+        with open(pl_module.hparams["performance_path"], 'r+') as file:
             data = yaml.load(file, yaml.FullLoader)
             data["gnn_eff"] = eff.item()
             data["gnn_pur"] = pur.item()
+            file.seek(0)
             yaml.dump(data, file)
         print("=====================================================================\n\n")
 
