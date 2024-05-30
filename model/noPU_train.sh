@@ -19,5 +19,5 @@ export OMP_PROC_BIND=spread
 module load conda
 conda activate trackml
 
-srun --ntasks-per-node 4 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/noPU_pipeline_1.yaml
+srun --ntasks-per-node 1 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/noPU_pipeline_1.yaml
 

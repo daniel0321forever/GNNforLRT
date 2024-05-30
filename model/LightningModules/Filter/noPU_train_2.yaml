@@ -1,6 +1,8 @@
 # Input/output configuration
 input_dir: $CFS/m3443/usr/daniel/dataset/embedding_2 
 output_dir: $CFS/m3443/usr/daniel/dataset/filter_2
+performance_path: stage_2.yaml
+log_dir: logging/version_2
 project: LRT_Filter
 filter_cut: 0.01 # 0.05
 overwrite: True

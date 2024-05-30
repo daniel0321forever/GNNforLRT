@@ -14,8 +14,9 @@ import torch
 import numpy as np
 import yaml
 
+
 class FilterGetPurEff(Callback):
-    
+
     def __init__(self):
         super().__init__()
         print("Calculating pur and eff...")
@@ -27,13 +28,12 @@ class FilterGetPurEff(Callback):
         self.preds = []
         self.truth = []
         self._true = 0
-        
-    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
 
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         """
         Get the relevant outputs from each batch
         """
-        
+
         self.preds.append(outputs["preds"].cpu())
         self.truth.append(outputs["truth"].cpu())
 
@@ -41,32 +41,33 @@ class FilterGetPurEff(Callback):
         self._true += batch.layerless_true_edges.shape[1]
 
     def on_test_end(self, trainer, pl_module):
-
         """
         1. Aggregate all outputs,
         2. Calculate the ROC curve,
         3. Plot ROC curve,
         4. Save plots to PDF 'metrics.pdf'
         """
-                                
+
         self.truth = torch.cat(self.truth)
         self.preds = torch.cat(self.preds)
-        
+
         score_cut = pl_module.hparams["filter_cut"]
-        
+
         positives = (self.preds > score_cut).sum()
         true_positives = ((self.preds > score_cut) & self.truth).sum()
-                
+
         eff = true_positives / self._true
         pur = true_positives / positives
-        
+
         print("\n\n=====================================================================")
         print("FILTER STAGE")
         print("eff dominator", self._true)
         print("eff", eff)
         print("pur", pur)
-        data = {"fil_eff": eff.item(), "fil_pur": pur.item()}
-        with open("tmp.yaml", 'a') as file:
+        with open(pl_module.hparams["performance_path"], 'rw') as file:
+            data = yaml.load(file, yaml.FullLoader)
+            data["fil_eff"] = eff.item()
+            data["fil_pur"] = pur.item()
             yaml.dump(data, file)
         print("=====================================================================\n\n")
 
@@ -87,7 +88,6 @@ class FilterTelemetry(Callback):
         logging.info("Constructing telemetry callback")
 
     def on_test_start(self, trainer, pl_module):
-
         """
         This hook is automatically called when the model is tested after training. The best checkpoint is automatically loaded
         """
@@ -97,56 +97,53 @@ class FilterTelemetry(Callback):
     def on_test_batch_end(
         self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
     ):
-
         """
         Get the relevant outputs from each batch
         """
-        
+
         self.preds.append(outputs["preds"].cpu())
         self.truth.append(outputs["truth"].cpu())
-                
-        
-    def on_test_end(self, trainer, pl_module):
 
+    def on_test_end(self, trainer, pl_module):
         """
         1. Aggregate all outputs,
         2. Calculate the ROC curve,
         3. Plot ROC curve,
         4. Save plots to PDF 'metrics.pdf'
         """
-        
+
         metrics = self.calculate_metrics()
 
         metrics_plots = self.plot_metrics(metrics)
-        
+
         self.save_metrics(metrics_plots, pl_module.hparams.output_dir)
-        
-    
+
     def get_eff_pur_metrics(self):
-                        
+
         self.truth = torch.cat(self.truth)
         self.preds = torch.cat(self.preds)
-        
+
         score_cuts = np.arange(0., 1., 0.05)
-        
-        positives = np.array([(self.preds > score_cut).sum() for score_cut in score_cuts])
-        true_positives = np.array([((self.preds > score_cut) & self.truth).sum() for score_cut in score_cuts])
-                
+
+        positives = np.array([(self.preds > score_cut).sum()
+                             for score_cut in score_cuts])
+        true_positives = np.array(
+            [((self.preds > score_cut) & self.truth).sum() for score_cut in score_cuts])
+
         eff = true_positives / self.truth.sum()
         pur = true_positives / positives
-        
+
         return eff, pur, score_cuts
-        
 
     def calculate_metrics(self):
-        
+
         eff, pur, score_cuts = self.get_eff_pur_metrics()
-        
-        return {"eff_plot": {"eff": eff, "score_cuts": score_cuts}, 
+
+        return {"eff_plot": {"eff": eff, "score_cuts": score_cuts},
                 "pur_plot": {"pur": pur, "score_cuts": score_cuts}}
-    
+
     def make_plot(self, x_val, y_val, x_lab, y_lab, title):
-        
+
         # Update this to dynamically adapt to number of metrics
         fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(20, 20))
         axs = axs.flatten() if type(axs) is list else [axs]
@@ -156,26 +153,29 @@ class FilterTelemetry(Callback):
         axs[0].set_ylabel(y_lab)
         axs[0].set_title(title)
         plt.tight_layout()
-        
+
         return fig, axs
-    
+
     def plot_metrics(self, metrics):
-                
-        eff_fig, eff_axs = self.make_plot(metrics["eff_plot"]["score_cuts"], metrics["eff_plot"]["eff"], "cut", "Eff", "Efficiency vs. cut")
-        pur_fig, pur_axs = self.make_plot(metrics["pur_plot"]["score_cuts"], metrics["pur_plot"]["pur"], "cut", "Pur", "Purity vs. cut")
-        
+
+        eff_fig, eff_axs = self.make_plot(
+            metrics["eff_plot"]["score_cuts"], metrics["eff_plot"]["eff"], "cut", "Eff", "Efficiency vs. cut")
+        pur_fig, pur_axs = self.make_plot(
+            metrics["pur_plot"]["score_cuts"], metrics["pur_plot"]["pur"], "cut", "Pur", "Purity vs. cut")
+
         return {"eff_plot": [eff_fig, eff_axs], "pur_plot": [pur_fig, pur_axs]}
-    
+
     def save_metrics(self, metrics_plots, output_dir):
-        
+
         os.makedirs(output_dir, exist_ok=True)
-        
+
         for metric, (fig, axs) in metrics_plots.items():
             fig.savefig(
                 os.path.join(output_dir, f"metrics_{metric}.pdf"), format="pdf"
             )
-        
-class FilterBuilder(Callback):        
+
+
+class FilterBuilder(Callback):
     """Callback handling filter inference for later stages.
 
     This callback is used to apply a trained filter model to the dataset of a LightningModule. 
@@ -185,19 +185,19 @@ class FilterBuilder(Callback):
     with the --inference flag. Otherwise, to just run straight through automatically, train with this callback included.
 
     """
-    
+
     def __init__(self):
         self.output_dir = None
         self.overwrite = False
 
     def on_test_end(self, trainer, pl_module):
-        
+
         print("Testing finished, running inference to build graphs...")
-        
+
         datasets = self.prepare_datastructure(pl_module)
-        
+
         total_length = sum([len(dataset) for dataset in datasets.values()])
-        
+
         pl_module.eval()
         with torch.no_grad():
             batch_incr = 0
@@ -217,7 +217,8 @@ class FilterBuilder(Callback):
                         batch_to_save = batch_to_save.to(
                             pl_module.device
                         )  # Is this step necessary??
-                        self.construct_downstream(batch_to_save, pl_module, datatype)
+                        self.construct_downstream(
+                            batch_to_save, pl_module, datatype)
 
                     batch_incr += 1
 
@@ -225,7 +226,7 @@ class FilterBuilder(Callback):
         # Prep the directory to produce inference data to
         self.output_dir = pl_module.hparams.output_dir
         self.datatypes = ["train", "val", "test"]
-        
+
         os.makedirs(self.output_dir, exist_ok=True)
         [
             os.makedirs(os.path.join(self.output_dir, datatype), exist_ok=True)
@@ -243,13 +244,14 @@ class FilterBuilder(Callback):
             "val": pl_module.valset,
             "test": pl_module.testset,
         }
-        
+
         return datasets
-                    
+
     def construct_downstream(self, batch, pl_module, datatype):
 
         emb = (
-            None if (pl_module.hparams["emb_channels"] == 0) else batch.embedding
+            None if (pl_module.hparams["emb_channels"]
+                     == 0) else batch.embedding
         )  # Does this work??
 
         cut_list = []
@@ -273,20 +275,21 @@ class FilterBuilder(Callback):
 
         if "pid" not in pl_module.hparams["regime"]:
             batch.y = batch.y[cut_list]
-            
-        y_pid = batch.pid[batch.edge_index[0]] == batch.pid[batch.edge_index[1]]
+
+        y_pid = batch.pid[batch.edge_index[0]
+                          ] == batch.pid[batch.edge_index[1]]
         batch.y_pid = y_pid[cut_list]
         batch.edge_index = batch.edge_index[:, cut_list]
         if "weighting" in pl_module.hparams["regime"]:
             batch.weights = batch.weights[cut_list]
-            
+
         self.save_downstream(batch, pl_module, datatype)
-        
 
     def save_downstream(self, batch, pl_module, datatype):
 
         with open(
-            os.path.join(self.output_dir, datatype, batch.event_file[-4:]), "wb"
+            os.path.join(self.output_dir, datatype,
+                         batch.event_file[-4:]), "wb"
         ) as pickle_file:
             torch.save(batch, pickle_file)
 

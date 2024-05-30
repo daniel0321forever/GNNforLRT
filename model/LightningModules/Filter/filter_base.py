@@ -241,20 +241,7 @@ class FilterBase(LightningModule):
         return outputs["loss"]
 
     def on_validation_epoch_end(self) -> None:
-        # make log dir
-        if self.epoch == 1:
-            i = 0
-            self.log_dir = os.path.join(
-                self.hparams["checkpoint_path"], f"version{i}")
-            while (os.path.exists(self.log_dir)):
-                i += 1
-                self.log_dir = os.path.join(
-                    self.hparams["checkpoint_path"], f"version{i}")
-            self.log_dir = os.path.join(
-                self.hparams["checkpoint_path"], f"version{i - 1}")
-
-        self.writer = SummaryWriter(log_dir=self.log_dir)
-
+        self.writer = SummaryWriter(log_dir=self.hparams["log_dir"])
         self.writer.add_scalars(
             "Filtering Loss",
             self.summary_dict,

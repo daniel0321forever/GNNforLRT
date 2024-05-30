@@ -1,6 +1,8 @@
 # Input/output configuration
 input_dir: $CFS/m3443/usr/daniel/dataset/filter_3
 output_dir: $CFS/m3443/usr/daniel/dataset/gnn_3
+performance_path: stage_3.yaml
+log_dir: logging/version_3
 project: LRT_GNN
 edge_cut: 0.5 # 0.5
 overwrite: True

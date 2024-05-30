@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 import logging
 from typing import Any, Optional
 
@@ -24,7 +25,7 @@ class GNNBase(LightningModule):
         print("--- GNN ---")
         # Assign hyperparameters
         torch.set_float32_matmul_precision('medium')
-        self.save_hyperparameters(hparams)        
+        self.save_hyperparameters(hparams)
         self.summary_dict = {
             "train_loss": 0,
             "val_loss": 0,
@@ -40,8 +41,8 @@ class GNNBase(LightningModule):
         ]
         self.trainset, self.valset, self.testset = [
             load_dataset(
-                input_dir, 
-                self.hparams["datatype_split"][i], 
+                input_dir,
+                self.hparams["datatype_split"][i],
                 self.hparams["pt_background_min"],
                 self.hparams["pt_signal_min"],
                 self.hparams["true_edges"],
@@ -102,8 +103,8 @@ class GNNBase(LightningModule):
     def training_step(self, batch, batch_idx):
         if (batch.edge_index.ndim > 2):
             return None
-        
-        torch.cuda.empty_cache() # empty gpu cashe
+
+        torch.cuda.empty_cache()  # empty gpu cashe
 
         weight = (
             torch.tensor(self.hparams["weight"])
@@ -113,7 +114,8 @@ class GNNBase(LightningModule):
 
         output = (
             self(
-                torch.cat([batch.cell_data, batch.x], axis=-1), batch.edge_index
+                torch.cat([batch.cell_data, batch.x],
+                          axis=-1), batch.edge_index
             ).squeeze()
             if ("ci" in self.hparams["regime"])
             else self(batch.x, batch.edge_index).squeeze()
@@ -125,16 +127,15 @@ class GNNBase(LightningModule):
             manual_weights = None
 
         truth = (
-            (batch.pid[batch.edge_index[0]] == batch.pid[batch.edge_index[1]]).float()
+            (batch.pid[batch.edge_index[0]] ==
+             batch.pid[batch.edge_index[1]]).float()
             if "pid" in self.hparams["regime"]
             else batch.y
         )
-        
- 
+
         loss = F.binary_cross_entropy_with_logits(
             output, truth.float(), weight=manual_weights, pos_weight=weight
         )
-
 
         self.log("train_loss", loss)
         self.summary_dict["train_loss"] += loss / len(self.trainset)
@@ -144,10 +145,10 @@ class GNNBase(LightningModule):
     def shared_evaluation(self, batch, batch_idx, log=False):
         if (batch.edge_index.ndim > 2):
             return {
-                    "loss": 0,
-                    "preds": None,
-                    "truth": None,
-                    }
+                "loss": 0,
+                "preds": None,
+                "truth": None,
+            }
         weight = (
             torch.tensor(self.hparams["weight"])
             if ("weight" in self.hparams)
@@ -156,14 +157,16 @@ class GNNBase(LightningModule):
 
         output = (
             self(
-                torch.cat([batch.cell_data, batch.x], axis=-1), batch.edge_index
+                torch.cat([batch.cell_data, batch.x],
+                          axis=-1), batch.edge_index
             ).squeeze()
             if ("ci" in self.hparams["regime"])
             else self(batch.x, batch.edge_index).squeeze()
         )
 
         truth = (
-            (batch.pid[batch.edge_index[0]] == batch.pid[batch.edge_index[1]]).float()
+            (batch.pid[batch.edge_index[0]] ==
+             batch.pid[batch.edge_index[1]]).float()
             if "pid" in self.hparams["regime"]
             else batch.y
         )
@@ -192,7 +195,6 @@ class GNNBase(LightningModule):
             self.log_dict(
                 {"val_loss": loss, "eff": eff, "pur": pur, "current_lr": current_lr}
             )
-        
 
         return {
             "loss": loss,
@@ -200,28 +202,17 @@ class GNNBase(LightningModule):
             "truth": truth,
         }
 
-
     def validation_step(self, batch, batch_idx):
-        torch.cuda.empty_cache() # empty gpu cashe
+        torch.cuda.empty_cache()  # empty gpu cashe
 
         outputs = self.shared_evaluation(batch, batch_idx, log=True)
         self.summary_dict["val_loss"] += outputs['loss'] / len(self.valset)
 
         return outputs["loss"]
 
-
     def on_validation_epoch_end(self) -> None:
-        # make log dir
-        if self.epoch == 1:
-            i = 0
-            self.log_dir = os.path.join(self.hparams["checkpoint_path"], f"version{i}")
-            while(os.path.exists(self.log_dir)):
-                i += 1
-                self.log_dir = os.path.join(self.hparams["checkpoint_path"], f"version{i}")
-            self.log_dir = os.path.join(self.hparams["checkpoint_path"], f"version{i - 1}")
+        self.writer = SummaryWriter(log_dir=self.hparams["log_dir"])
 
-        self.writer = SummaryWriter(log_dir=self.log_dir)
-        
         self.writer.add_scalars(
             "GNN Loss",
             self.summary_dict,
@@ -263,7 +254,8 @@ class GNNBase(LightningModule):
             self.trainer.global_step < self.hparams["warmup"]
         ):
             lr_scale = min(
-                1.0, float(self.trainer.global_step + 1) / self.hparams["warmup"]
+                1.0, float(self.trainer.global_step + 1) /
+                self.hparams["warmup"]
             )
             for pg in optimizer.param_groups:
                 pg["lr"] = lr_scale * self.hparams["lr"]
