@@ -6,7 +6,7 @@
 #SBATCH -J HNL_PU0_train2
 #SBATCH --mail-user=daniel.bb0321@gmail.com
 #SBATCH --mail-type=ALL
-#SBATCH -t 16:30:00
+#SBATCH -t 8:30:00
 #SBATCH -A m3443
 
 #OpenMP settings:
@@ -20,4 +20,3 @@ module load conda
 conda activate trackml
 
 srun --ntasks-per-node 1 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/noPU_pipeline_2.yaml
-

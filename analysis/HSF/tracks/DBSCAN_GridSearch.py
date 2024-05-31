@@ -126,7 +126,7 @@ def plot_tracks(particles, save):
     plotter.plot(save=save)
 
 
-if __name__ == '__main__':
+def plot(config_file):
     # root dir should be "analysis HSF"
     config_path = Path('configs')
     save = Path('../../output/tracks/')
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     reader = DataReader(
         # config_path='../configs/reading/processed/gnn.yaml',
         # config_path='../configs/reading/v4/processed/gnn.yaml',
-        config_path=config_path/'gnn.yaml',
+        config_path=config_path/config_file,
         base_dir="."
     )
 
@@ -147,20 +147,13 @@ if __name__ == '__main__':
         def _reconstruct_and_match_tracks(data):
             return reconstruct_and_match_tracks(data=data, epsilon=epsilon)
 
-        reader = DataReader(
-            # config_path='../configs/reading/processed/gnn.yaml',
-            # config_path='../configs/reading/v4/processed/gnn.yaml',
-            config_path=config_path/'gnn.yaml',
-            base_dir="."
-        )
-
         with multiprocessing.Pool(processes=8) as pool:
 
             particles = pd.concat(
                 pool.map(_reconstruct_and_match_tracks,
                          reader.read(silent_skip=True))
             )
-        
+
         matched = len(particles[particles.is_trackable & particles.is_matched])
         print(matched)
 
@@ -173,7 +166,8 @@ if __name__ == '__main__':
     # All.
     plot_tracks(
         best_particle,
-        save=save / f'all_{datetime.now().isoformat()}.pdf'
+        save=save /
+        f'dbscan_{config_file.split(".")[0]}_{datetime.now().isoformat()}.pdf'
     )
 
     # FIXME: The plot below requres parent type data, which is used to seperate displaced and prompt data
@@ -192,3 +186,10 @@ if __name__ == '__main__':
     #     ],
     #     save=save / 'prompt.pdf'
     # )
+
+
+if __name__ == '__main__':
+    config_names = ["gnn_1.yaml", "gnn_2.yaml", "gnn_3.yaml"]
+
+    for config_name in config_names:
+        plot(config_name)

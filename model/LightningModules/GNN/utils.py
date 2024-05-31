@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 
 import torch.nn as nn
 import torch
@@ -18,33 +19,35 @@ if device == "cuda":
 def load_dataset(input_dir, num, pt_background_cut, pt_signal_cut, true_edges, noise):
     if input_dir is not None:
         all_events = os.listdir(input_dir)
-        all_events = sorted([os.path.join(input_dir, event) for event in all_events])
+        all_events = sorted([os.path.join(input_dir, event)
+                            for event in all_events])
 
 #        loaded_events = [
 #            torch.load(event, map_location=torch.device("cpu"))
 #            for event in all_events[:num]
 #        ]
-        
+
         loaded_events = []
         for event in all_events[:num]:
-            print("processing event", event)
             try:
-                loaded_events.append(torch.load(event, map_location=torch.device("cpu")))
+                loaded_events.append(torch.load(
+                    event, map_location=torch.device("cpu")))
             except Exception as e:
-                print(e)
+                print(f"{e} occurs while processing event {event}")
 
-        loaded_events = select_data(loaded_events, pt_background_cut, pt_signal_cut, true_edges, noise)
+        loaded_events = select_data(
+            loaded_events, pt_background_cut, pt_signal_cut, true_edges, noise)
         return loaded_events
     else:
         return None
 
-    
+
 def get_edge_subset(edges, mask_where, inverse_mask):
-    
-    included_edges_mask = np.isin(edges, mask_where).all(0)    
+
+    included_edges_mask = np.isin(edges, mask_where).all(0)
     included_edges = edges[:, included_edges_mask]
     included_edges = inverse_mask[included_edges]
-    
+
     return included_edges, included_edges_mask
 
 
@@ -56,27 +59,29 @@ def select_data(events, pt_background_cut, pt_signal_cut, true_edges, noise):
     # NOTE: Cutting background by pT BY DEFINITION removes noise
     if (pt_background_cut > 0) or not noise:
         for event in events:
-            
+
             pt_mask = (event.pt > pt_background_cut) & (event.pid == event.pid)
             pt_where = torch.where(pt_mask)[0]
-            
+
             inverse_mask = torch.zeros(pt_where.max()+1).long()
             inverse_mask[pt_where] = torch.arange(len(pt_where))
-            
-            edge_mask = None    
-            event[true_edges], edge_mask = get_edge_subset(event[true_edges], pt_where, inverse_mask)
-                        
+
+            edge_mask = None
+            event[true_edges], edge_mask = get_edge_subset(
+                event[true_edges], pt_where, inverse_mask)
+
             if "weights" in event.__dict__.keys():
                 if event.weights.shape[0] == event[true_edges].shape[1]:
                     event.weights = event.weights[edge_mask]
-            
-            event.edge_index, _ = get_edge_subset(event.edge_index, pt_where, inverse_mask)
-            
+
+            event.edge_index, _ = get_edge_subset(
+                event.edge_index, pt_where, inverse_mask)
+
             node_features = ["cell_data", "x", "hid", "pid", "pt", "layers"]
             for feature in node_features:
                 if feature in event.__dict__.keys():
                     event[feature] = event[feature][pt_mask]
-        
+
     # Define the signal edges
     for event in events:
         if pt_signal_cut > 0:
@@ -84,7 +89,7 @@ def select_data(events, pt_background_cut, pt_signal_cut, true_edges, noise):
             event.signal_true_edges = event[true_edges][:, edge_subset]
         else:
             event.signal_true_edges = event[true_edges]
-    
+
     return events
 
 
@@ -109,14 +114,16 @@ def random_edge_slice_v2(delta_phi, batch):
     e_csr_in = cp.sparse.coo_matrix(
         (
             e_ones,
-            (cp.array(e[0]).astype("Float32"), cp.arange(e_length).astype("Float32")),
+            (cp.array(e[0]).astype("Float32"),
+             cp.arange(e_length).astype("Float32")),
         ),
         shape=(e.max() + 1, e_length),
     ).tocsr()
     e_csr_out = cp.sparse.coo_matrix(
         (
             e_ones,
-            (cp.array(e[0]).astype("Float32"), cp.arange(e_length).astype("Float32")),
+            (cp.array(e[0]).astype("Float32"),
+             cp.arange(e_length).astype("Float32")),
         ),
         shape=(e.max() + 1, e_length),
     ).tocsr()
@@ -164,7 +171,8 @@ def random_edge_slice(delta_phi, batch):
     subset_edges_ind = np.isin(e[0], subset_hits) | np.isin(e[1], subset_hits)
 
     subset_hits = np.unique(e[:, subset_edges_ind])
-    subset_edges_extended = np.isin(e[0], subset_hits) | np.isin(e[1], subset_hits)
+    subset_edges_extended = np.isin(
+        e[0], subset_hits) | np.isin(e[1], subset_hits)
     nested_ind = np.isin(
         np.where(subset_edges_extended)[0], np.where(subset_edges_ind)[0]
     )
@@ -271,7 +279,8 @@ def get_metrics(test_results):
 
     ps = [result["preds"].sum() for result in test_results[1:]]
     ts = [result["truth"].sum() for result in test_results[1:]]
-    tps = [(result["preds"] * result["truth"]).sum() for result in test_results[1:]]
+    tps = [(result["preds"] * result["truth"]).sum()
+           for result in test_results[1:]]
 
     efficiencies = [tp / t for (t, tp) in zip(ts, tps)]
     purities = [tp / p for (p, tp) in zip(ps, tps)]

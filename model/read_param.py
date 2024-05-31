@@ -1,8 +1,9 @@
 import pandas as pd
 import yaml
+from datetime import datetime
 
 
-def to_csv(config_paths: list, title: str):
+def to_csv(config_paths: list, ind: int, title: str):
     dfs = []
 
     for config_path in config_paths:
@@ -13,6 +14,8 @@ def to_csv(config_paths: list, title: str):
         config.pop("output_dir", None)
         config.pop("project", None)
         config.pop("checkpoint_path", None)
+        config["date"] = datetime.today().isoformat()
+        config["type"] = ind
         for key in config.keys():
 
             if isinstance(config[key], list):
@@ -23,9 +26,10 @@ def to_csv(config_paths: list, title: str):
         dfs.append(pd.DataFrame(config, index=[0]))
 
     df = pd.concat(dfs, axis=1)
-    df.to_csv(f"{title}.csv")
+    df.to_csv(f"{title}.csv", mode="a")
 
 
 if __name__ == "__main__":
-    to_csv(["./LightningModules/Embedding/noPU_train.yaml", "./LightningModules/Filter/noPU_train.yaml",
-           "./LightningModules/GNN/noPU_train.yaml"], title="param")
+    for i in range(1, 4):
+        to_csv([f"./LightningModules/Embedding/noPU_train_{i}.yaml", f"./LightningModules/Filter/noPU_train_{i}.yaml",
+                f"./LightningModules/GNN/noPU_train_{i}.yaml"], title="param", ind=i)

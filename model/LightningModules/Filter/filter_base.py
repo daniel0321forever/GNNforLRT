@@ -159,7 +159,6 @@ class FilterBase(LightningModule):
             )
 
         self.log("train_loss", loss)
-        self.summary_dict["train_loss"] += loss / len(self.trainset)
 
         return result
 
@@ -342,6 +341,7 @@ class FilterBaseBalanced(FilterBase):
 
                 # from (n_chunks, 2, num_edge) to (2, num_edges)
                 cut_list = torch.cat(cut_list)
+
             else:
                 # find model output (filter score of each edge) with input including cell information
                 if ("ci" in self.hparams["regime"]):
@@ -417,12 +417,14 @@ class FilterBaseBalanced(FilterBase):
             )
 
         self.log_dict({"train_loss": loss})
+        self.summary_dict["train_loss"] += loss / len(self.trainset)
 
         return loss
 
     def validation_step(self, batch, batch_idx):
 
         result = self.shared_evaluation(batch, batch_idx, log=True)
+        self.summary_dict["val_loss"] += result["loss"] / len(self.valset)
 
         return result
 
