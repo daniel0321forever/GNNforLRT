@@ -1,6 +1,6 @@
 stage_list:
-  - { set: Embedding, name: LayerlessEmbedding, config: noPU_train_2.yaml,resume_id: , batch_config: configs/batch_gpu_default.yaml, batch_setup: True} 
-  - { set: Filter, name: VanillaFilter, config: noPU_train_2.yaml, resume_id: , batch_config: configs/batch_gpu_default.yaml,batch_setup: True}
+  # - { set: Embedding, name: LayerlessEmbedding, config: noPU_train_2.yaml,resume_id: , batch_config: configs/batch_gpu_default.yaml, batch_setup: True} 
+  # - { set: Filter, name: VanillaFilter, config: noPU_train_2.yaml, resume_id: , batch_config: configs/batch_gpu_default.yaml,batch_setup: True}
   - {
     set: GNN,
     # ResAGNN, InteractionGNN or VanillaGCN 

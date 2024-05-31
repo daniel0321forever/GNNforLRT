@@ -136,7 +136,7 @@ def plot(config_file):
     reader = DataReader(
         # config_path='../configs/reading/processed/gnn.yaml',
         # config_path='../configs/reading/v4/processed/gnn.yaml',
-        config_path=config_path/config_file,
+        config_path=f'{config_path}/{config_file}',
         base_dir="."
     )
 
@@ -148,13 +148,11 @@ def plot(config_file):
             return reconstruct_and_match_tracks(data=data, epsilon=epsilon)
 
         with multiprocessing.Pool(processes=8) as pool:
-
             particles = pd.concat(
                 pool.map(_reconstruct_and_match_tracks,
                          reader.read(silent_skip=True))
             )
 
-        matched = len(particles[particles.is_trackable & particles.is_matched])
         print(matched)
 
         if matched >= best_score:
