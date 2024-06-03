@@ -187,7 +187,65 @@ def plot(config_file):
 
 
 if __name__ == '__main__':
-    config_names = ["gnn_1.yaml", "gnn_2.yaml", "gnn_3.yaml"]
+    # root dir should be "analysis HSF"
+    config_path = Path('configs')
+    save = Path('../../output/tracks/')
+    save.mkdir(parents=True, exist_ok=True)
+    config_names = ["gnn_1", "gnn_2", "gnn_3"]
 
     for config_name in config_names:
-        plot(config_name)
+        # reader
+        reader = DataReader(
+            # config_path='../configs/reading/processed/gnn.yaml',
+            # config_path='../configs/reading/v4/processed/gnn.yaml',
+            config_path=config_path/f'{config_name}.yaml',
+            base_dir="."
+        )
+
+        epsilons = np.linspace(0.01, 1, 20)
+        best_score = 0
+
+        for epsilon in epsilons:
+            def _reconstruct_and_match_tracks(data):
+                return reconstruct_and_match_tracks(data=data, epsilon=epsilon)
+
+            with multiprocessing.Pool(processes=8) as pool:
+
+                particles = pd.concat(
+                    pool.map(_reconstruct_and_match_tracks,
+                             reader.read(silent_skip=True))
+                )
+
+            matched = len(
+                particles[particles.is_trackable & particles.is_matched])
+            print(matched)
+
+            if matched >= best_score:
+                best_score = matched
+                best_eps = epsilon
+                best_particle = particles
+
+        print("The best epsilon is ", best_eps)
+        # All.
+        plot_tracks(
+            best_particle,
+            save=save /
+            f'dbscan_{config_name}_{datetime.now().isoformat()}.pdf'
+        )
+
+        # FIXME: The plot below requres parent type data, which is used to seperate displaced and prompt data
+        # Displaced.
+        # plot_tracks(
+        #     particles[
+        #         particle_filters['displaced'](particles)
+        #     ],
+        #     save=save / 'displaced.pdf'
+        # )
+
+        # # Prompt.
+        # plot_tracks(
+        #     particles[
+        #         particle_filters['prompt'](particles)
+        #     ],
+        #     save=save / 'prompt.pdf'
+        # )
