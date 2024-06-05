@@ -11,7 +11,7 @@ overwrite: True
 pt_background_min: 0.0
 pt_signal_min: 0.0
 datatype_names: [[train, val, test]] # Which directory prefixes to use, assuming at least a train dataset 
-datatype_split: [[900, 100, 500]] # Number of [training, validation, testing] examples
+datatype_split: [[20, 10, 10]] # Number of [training, validation, testing] examples
 endcaps: True
 true_edges: layerless_true_edges
 noise: True
@@ -33,7 +33,7 @@ lr: 0.001
 factor: 0.3
 patience: 10
 regime: [[]]
-max_epochs: 25 # 25
+max_epochs: 1 # 25
 slack_alert: False
 
 checkpoint_path: lightning_checkpoints
