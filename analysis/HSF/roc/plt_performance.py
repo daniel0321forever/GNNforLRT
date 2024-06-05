@@ -54,8 +54,8 @@ if __name__ == '__main__':
     for i in range(len(edge_file_list)):
         try:
             truths, scores = load_data(edge_file_list[i])
-            # print(truths.shape)
-            # print(scores.shape)
+            print(truths.shape)
+            print(scores.shape)
 
             # You can also precompute values and pass to plotter in data
             # to avoid multiple computation in each plot if many plots share same data.
