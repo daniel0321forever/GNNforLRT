@@ -3,6 +3,10 @@ import yaml
 from datetime import datetime
 import argparse
 
+"""
+Add pipeline index
+"""
+
 
 def to_csv(config_path: str, title: str):
     dfs = []
@@ -12,11 +16,11 @@ def to_csv(config_path: str, title: str):
         for stage in full_config.keys():
             config = full_config[stage]
             config.pop("input_dir", None)
-            config.pop("output_dir", None)
+            output_dir = config.pop("output_dir", None)
             config.pop("project", None)
-            p_path =  config.pop("performance_path", None)
+            p_path = config.pop("performance_path", None)
             log_dir = config.pop("log_dir", None)
-            checkpoint_path =  config.pop("checkpoint_path", None)
+            config.pop("checkpoint_path", None)
             for key in config.keys():
 
                 if isinstance(config[key], list):
@@ -25,11 +29,12 @@ def to_csv(config_path: str, title: str):
                     config[key] = ",".join(map(str, config[key]))
 
             dfs.append(pd.DataFrame(config, index=[0]))
-    
+
     df = pd.concat(dfs, axis=1)
-    df.insert(loc=0, "config", config_path)
-    df.insert(loc=1, "stage_performance", p_path)
-    df.insert(loc=2, "log_dir", log_dir)
+    df.insert(0, "config", config_path)
+    df.insert(2, "stage_performance", p_path)
+    df.insert(3, "logging", log_dir)
+    df.insert(4, "output", output_dir)
     df.to_csv(f"{title}.csv", mode='a')
 
 

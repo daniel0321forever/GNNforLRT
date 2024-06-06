@@ -16,9 +16,15 @@ export OMP_PROC_BIND=spread
 
 #run the application:
 #applications may perform better with --gpu-bind=none instead of --gpu-bind=single:1 
+file_ind = 2
+config = "train_configs/version_2.yaml"
 module load conda
 conda activate trackml
 
-python3 make_confgs.py train_configs/version_2.yaml 2
-srun --ntasks-per-node 1 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/pipeline_2.yaml
-python3 read_param.py train_configs/version_2.yaml 
+python3 make_confgs.py $config $file_ind
+traintrack configs/pipeline_$file_ind.yaml
+python3 read_param.py $config
+
+cd ../analysis/HSF
+python3 roc/plt_performance.py $file_ind
+python3 tracks/DBSCAN_GridSearch.py $file_ind
