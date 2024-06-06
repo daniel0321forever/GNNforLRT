@@ -9,8 +9,8 @@ datatype_names:
   - val
   - test
 datatype_split:
-- - 900
-  - 100
+- - 4000
+  - 500
   - 500
 edges_per_batch: 300000
 emb_channels: 0

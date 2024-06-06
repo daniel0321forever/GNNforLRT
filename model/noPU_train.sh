@@ -20,5 +20,5 @@ module load conda
 conda activate trackml
 
 python3 make_confgs.py train_configs/version_1.yaml 1
-srun --ntasks-per-node 1 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/train_1.yaml
+srun --ntasks-per-node 1 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/pipeline_1.yaml
 python3 read_param.py train_configs/version_1.yaml 

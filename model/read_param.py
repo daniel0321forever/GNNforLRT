@@ -14,9 +14,9 @@ def to_csv(config_path: str, title: str):
             config.pop("input_dir", None)
             config.pop("output_dir", None)
             config.pop("project", None)
-            config.pop("performance_path", None)
-            config.pop("log_dir", None)
-            config.pop("checkpoint_path", None)
+            p_path =  config.pop("performance_path", None)
+            log_dir = config.pop("log_dir", None)
+            checkpoint_path =  config.pop("checkpoint_path", None)
             for key in config.keys():
 
                 if isinstance(config[key], list):
@@ -25,8 +25,11 @@ def to_csv(config_path: str, title: str):
                     config[key] = ",".join(map(str, config[key]))
 
             dfs.append(pd.DataFrame(config, index=[0]))
-
+    
     df = pd.concat(dfs, axis=1)
+    df.insert(loc=0, "config", config_path)
+    df.insert(loc=1, "stage_performance", p_path)
+    df.insert(loc=2, "log_dir", log_dir)
     df.to_csv(f"{title}.csv", mode='a')
 
 

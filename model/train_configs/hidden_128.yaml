@@ -1,8 +1,8 @@
 embedding:
   input_dir: $CFS/m3443/usr/daniel/raw_dataset/HNL_output_noPU_npz
-  output_dir: $CFS/m3443/usr/daniel/dataset/embedding_3
-  performance_path: stage_3.yaml
-  log_dir: logging/version_3
+  output_dir: $CFS/m3443/usr/daniel/dataset/embedding_4
+  performance_path: stage_4.yaml
+  log_dir: logging/version_4
   project: LRT_Embedding
   overwrite: True
 
@@ -42,10 +42,10 @@ embedding:
 
 filter:
   # Input/output configuration
-  input_dir: $CFS/m3443/usr/daniel/dataset/embedding_3 
-  output_dir: $CFS/m3443/usr/daniel/dataset/filter_1
-  performance_path: stage_3.yaml
-  log_dir: logging/version_3
+  input_dir: $CFS/m3443/usr/daniel/dataset/embedding_4
+  output_dir: $CFS/m3443/usr/daniel/dataset/filter_4
+  performance_path: stage_4.yaml
+  log_dir: logging/version_4
   project: LRT_Filter
   filter_cut: 0.01 # 0.05
   overwrite: True
@@ -84,10 +84,10 @@ filter:
 
 gnn:
   # Input/output configuration
-  input_dir: $CFS/m3443/usr/daniel/dataset/filter_1
-  output_dir: $CFS/m3443/usr/daniel/dataset/gnn_1
-  performance_path: stage_3.yaml
-  log_dir: logging/version_3
+  input_dir: $CFS/m3443/usr/daniel/dataset/filter_4
+  output_dir: $CFS/m3443/usr/daniel/dataset/gnn_4
+  performance_path: stage_4.yaml
+  log_dir: logging/version_4
   project: LRT_GNN
   edge_cut: 0.5 # 0.5
   overwrite: True
@@ -103,7 +103,7 @@ gnn:
 
   # Model parameters
   in_channels: 3
-  hidden: 256
+  hidden: 128
   batch_size: 1
   n_graph_iters: 8
   nb_node_layer: 5

@@ -54,6 +54,7 @@ def split_datasets(input_dir, train_split, pt_background_cut=0, pt_signal_cut=0,
     """
     torch.manual_seed(seed)
     loaded_events = load_dataset(input_dir, sum(train_split), pt_background_cut, pt_signal_cut, true_edges, noise)
+
     train_events, val_events, test_events = random_split(loaded_events, train_split)
 
     return train_events, val_events, test_events

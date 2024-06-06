@@ -6,7 +6,7 @@
 #SBATCH -J HNL_PU40_train
 #SBATCH --mail-user=daniel.bb0321@gmail.com
 #SBATCH --mail-type=ALL
-#SBATCH -t 16:30:00
+#SBATCH -t 8:30:00
 #SBATCH -A m3443
 
 #OpenMP settings:
@@ -19,5 +19,6 @@ export OMP_PROC_BIND=spread
 module load conda
 conda activate trackml
 
-srun --ntasks-per-node 4 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/PU40_pipeline.yaml
-
+python3 make_confgs.py train_configs/hidden_128.yaml 4
+srun --ntasks-per-node 1 -c 32 --cpu_bind=cores -G 4 --gpu-bind=single:1 traintrack configs/pipeline_4.yaml
+python3 read_param.py train_configs/hidden_128.yaml 

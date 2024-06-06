@@ -9,7 +9,7 @@ embedding:
   # Dataset parameters
   pt_signal_min: 0
   pt_background_min: 0
-  train_split: [[4500, 500, 500]] # Number of [training, validation, testing] examples
+  train_split: [[4000, 500, 500]] # Number of [training, validation, testing] examples
   true_edges: layerless_true_edges
   noise: True # True
 
@@ -54,7 +54,7 @@ filter:
   pt_background_min: 0.0
   pt_signal_min: 0.0
   datatype_names: [[train, val, test]] # Which directory prefixes to use, assuming at least a train dataset 
-  datatype_split: [[900, 300, 500]] # Number of [training, validation, testing] examples
+  datatype_split: [[4000, 500, 500]] # Number of [training, validation, testing] examples
   endcaps: True
   true_edges: layerless_true_edges
   noise: True
@@ -96,7 +96,7 @@ gnn:
   pt_background_min: 0.0
   pt_signal_min: 0.0
   datatype_names: [[train, val, test]] # Which directory prefixes to use, assuming at least a train dataset 
-  datatype_split: [[900, 300, 500]] # Number of [training, validation, testing] examples
+  datatype_split: [[4000, 500, 500]] # Number of [training, validation, testing] examples
   endcaps: True
   true_edges: layerless_true_edges
   noise: True

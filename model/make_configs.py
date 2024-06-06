@@ -32,7 +32,7 @@ def make_config(stages, file_ind):
             {
                 "set": "Embedding",
                 "name": "LayerlessEmbedding",
-                "config": f"{train_config_name}_{file_ind}",
+                "config": f"{train_config_name}_{file_ind}.yaml",
                 "batch_config": "configs/batch_gpu_default.yaml",
                 "batch_setup": True,
             },
@@ -43,7 +43,7 @@ def make_config(stages, file_ind):
             {
                 "set": "Filter",
                 "name": "VanillaFilter",
-                "config": f"{train_config_name}_{file_ind}",
+                "config": f"{train_config_name}_{file_ind}.yaml",
                 "batch_config": "configs/batch_gpu_default.yaml",
                 "batch_setup": True,
             },
@@ -54,7 +54,7 @@ def make_config(stages, file_ind):
             {
                 "set": "GNN",
                 "name": "ResAGNN",
-                "config": f"{train_config_name}_{file_ind}",
+                "config": f"{train_config_name}_{file_ind}.yaml",
                 "batch_config": "configs/batch_gpu_default.yaml",
                 "batch_setup": True,
             },

@@ -32,8 +32,8 @@ regime:
   - hnm
   - norm
 train_split:
-- - 900
-  - 100
+- - 4000
+  - 500
   - 500
 true_edges: layerless_true_edges
 warmup: 4
