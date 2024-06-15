@@ -4,6 +4,7 @@
 import numpy as np
 import torch
 import os
+import argparse
 from datetime import datetime
 from matplotlib import pyplot as plt
 
@@ -35,6 +36,13 @@ def load_data(datas_dir: str):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file_ind", type=int,
+                        help="The index of the configuration")
+    args = parser.parse_args()
+
+    file_ind = args.file_ind
+
     fig, ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)
 
     # data = torch.load('/global/cfs/cdirs/m3443/usr/daniel/dataset/gnn/test/0125')
@@ -45,56 +53,45 @@ if __name__ == '__main__':
     # truth = truth.cpu().numpy()
     # score = score.cpu().numpy()
 
-    edge_file_list = [
-        "/global/cfs/cdirs/m3443/usr/daniel/dataset/gnn_1/test",
-        "/global/cfs/cdirs/m3443/usr/daniel/dataset/gnn_2/test",
-        "/global/cfs/cdirs/m3443/usr/daniel/dataset/gnn_3/test",
-    ]
+    edge_file = f"/global/cfs/cdirs/m3443/usr/daniel/dataset/gnn_{file_ind}/test"
 
-    for i in range(len(edge_file_list)):
-        try:
-            truths, scores = load_data(edge_file_list[i])
-            print(truths.shape)
-            print(scores.shape)
+    truths, scores = load_data(edge_file)
+    print(truths.shape)
+    print(scores.shape)
 
-            # You can also precompute values and pass to plotter in data
-            # to avoid multiple computation in each plot if many plots share same data.
-            """
-            import sklearn.metrics
-            
-            false_positive_rate, true_positive_rate, _ = sklearn.metrics.roc_curve(
-                truth, 
-                score
+    # You can also precompute values and pass to plotter in data
+    # to avoid multiple computation in each plot if many plots share same data.
+    """
+    import sklearn.metrics
+    
+    false_positive_rate, true_positive_rate, _ = sklearn.metrics.roc_curve(
+        truth, 
+        score
+    )
+    precision, recall, thresholds = sklearn.metrics.precision_recall_curve(
+        truth,
+        score
+    )
+    """
+
+    Plotter(
+        fig=fig,
+        plots={
+            ax[0, 0]: PlotConfig(
+                plot='exatrkx.performance.score_distribution'
+            ),
+            ax[0, 1]: PlotConfig(
+                plot='exatrkx.performance.roc_curve'
+            ),
+            ax[1, 0]: PlotConfig(
+                plot='exatrkx.performance.precision_recall_with_threshold'
+            ),
+            ax[1, 1]: PlotConfig(
+                plot='exatrkx.performance.precision_recall'
             )
-            precision, recall, thresholds = sklearn.metrics.precision_recall_curve(
-                truth,
-                score
-            )
-            """
-
-            Plotter(
-                fig=fig,
-                plots={
-                    ax[0, 0]: PlotConfig(
-                        plot='exatrkx.performance.score_distribution'
-                    ),
-                    ax[0, 1]: PlotConfig(
-                        plot='exatrkx.performance.roc_curve'
-                    ),
-                    ax[1, 0]: PlotConfig(
-                        plot='exatrkx.performance.precision_recall_with_threshold'
-                    ),
-                    ax[1, 1]: PlotConfig(
-                        plot='exatrkx.performance.precision_recall'
-                    )
-                },
-                data={
-                    'truth': truths,
-                    'score': scores
-                }
-            ).plot(save=f"../../output/performance_{i}_{datetime.now().strftime('%Y%m%d_%H%M')}.png")
-        except Exception as e:
-            print(
-                f"{e} occurs when loading data from {edge_file_list[i]}")
-
-            continue
+        },
+        data={
+            'truth': truths,
+            'score': scores
+        }
+    ).plot(save=f"../../output/performance_{file_ind}_{datetime.now().strftime('%Y%m%d_%H%M')}.png")
