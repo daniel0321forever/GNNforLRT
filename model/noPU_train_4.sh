@@ -16,12 +16,12 @@ export OMP_PROC_BIND=spread
 
 #run the application:
 #applications may perform better with --gpu-bind=none instead of --gpu-bind=single:1 
-file_ind = 4
-config = "train_configs/version_4.yaml"
+file_ind=4
+config="train_configs/version_4.yaml"
 module load conda
 conda activate trackml
 
-python3 make_confgs.py $config $file_ind
+python3 make_configs.py $config $file_ind
 traintrack configs/pipeline_$file_ind.yaml
 python3 read_param.py $config
 
