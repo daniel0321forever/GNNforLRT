@@ -3,7 +3,7 @@
 #SBATCH -C gpu
 #SBATCH -G 4
 #SBATCH -q regular
-#SBATCH -J HNL_PU40_train
+#SBATCH -J HNL_PU0_train_2
 #SBATCH --mail-user=daniel.bb0321@gmail.com
 #SBATCH --mail-type=ALL
 #SBATCH -t 8:30:00
@@ -21,7 +21,7 @@ config="train_configs/version_2.yaml"
 module load conda
 conda activate trackml
 
-python3 make_configs.py $config $file_ind
+python3 make_configs.py $config $file_ind -s gnn
 traintrack configs/pipeline_$file_ind.yaml
 python3 read_param.py $config
 

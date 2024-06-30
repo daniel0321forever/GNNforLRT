@@ -3,7 +3,7 @@
 #SBATCH -C gpu
 #SBATCH -G 4
 #SBATCH -q regular
-#SBATCH -J HNL_PU40_train
+#SBATCH -J HNL_PU0_train_4
 #SBATCH --mail-user=daniel.bb0321@gmail.com
 #SBATCH --mail-type=ALL
 #SBATCH -t 8:30:00
