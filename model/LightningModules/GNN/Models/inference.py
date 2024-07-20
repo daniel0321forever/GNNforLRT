@@ -69,8 +69,14 @@ class GNNEffPur(Callback):
         print("eff", eff.item())
         print("pur", pur.item())
 
+        if not os.path.exists(pl_module.hparams["performance_path"]):
+            with(open(pl_module.hparams["performance_path"], mode='w')) as f:
+                print("performance path does not exist, creating")
+
         with open(pl_module.hparams["performance_path"], 'r+') as file:
             data = yaml.load(file, yaml.FullLoader)
+            if not data:
+                data = {}
             data["gnn_eff"] = eff.item()
             data["gnn_pur"] = pur.item()
             file.seek(0)
@@ -117,7 +123,7 @@ class GNNEffPur(Callback):
             ax2.annotate(f"{j:.3f}", xy=(i, j))
 
         date_str = date.today().strftime("%Y%m%d")
-        fig.savefig(f"../output/stage_performance_{date_str}.png")
+        fig.savefig(f"../output/stage/stage_performance_{date_str}.png")
 
 
 """

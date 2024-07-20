@@ -190,8 +190,11 @@ def plot_pur_eff(
 
 
 if __name__ == '__main__':
-    output_path = Path('../../output/plots/v5/tracks/scan')
-    output_path.mkdir(exist_ok=True, parents=True)
+
+
+    config_path = Path('configs')
+    output_path = Path('../../output/tracks/')
+    output_path.mkdir(parents=True, exist_ok=True)
 
     epsilon_sample_points = [
         0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35
@@ -205,8 +208,8 @@ if __name__ == '__main__':
 
         reader = DataReader(
             # config_path='../configs/reading/processed/gnn.yaml',
-            config_path='../../data/v5/gnn.yaml',
-            base_dir='../../data/v5'
+            config_path= config_path / "gnn_4.yaml",
+            base_dir='.'
         )
 
         with multiprocessing.Pool(processes=8) as pool:

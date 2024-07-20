@@ -1,0 +1,6 @@
+===epsilon_0.05===
+Truth tracks:                12540
+Reco. tracks:                11673
+Reco. tracks Matched:                 3299
+Tracking Eff.:               0.2631
+Tracking Pur.:               0.2826

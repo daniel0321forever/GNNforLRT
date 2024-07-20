@@ -2,12 +2,12 @@ batch_size: 1
 callbacks:
 - EmbeddingPurEff
 - EmbeddingBuilder
-checkpoint_path: lightning_checkpoints
+checkpoint_path: $CFS/m3443/usr/daniel/lightning_checkpoints
 emb_dim: 12
 emb_hidden: 1024
 factor: 0.58
 in_channels: 3
-input_dir: $CFS/m3443/usr/daniel/raw_dataset/HNL_output_noPU_npz
+input_dir: $CFS/m3443/usr/daniel/raw_dataset/HNL_output_PU200_npz
 knn: 200
 log_dir: logging/version_1
 lr: 0.0001
@@ -32,9 +32,9 @@ regime:
   - hnm
   - norm
 train_split:
-- - 900
-  - 100
-  - 100
+- - 2000
+  - 500
+  - 500
 true_edges: layerless_true_edges
 warmup: 4
 weight: 4

@@ -64,6 +64,12 @@ class FilterGetPurEff(Callback):
         print("eff dominator", self._true)
         print("eff", eff)
         print("pur", pur)
+
+        if not os.path.exists(pl_module.hparams["performance_path"]):
+            with(open(pl_module.hparams["performance_path"], mode='w')) as f:
+                print("performance path does not exist, creating")
+
+
         with open(pl_module.hparams["performance_path"], 'r+') as file:
             data = yaml.load(file, yaml.FullLoader)
             data["fil_eff"] = eff.item()

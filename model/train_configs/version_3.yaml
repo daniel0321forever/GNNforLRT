@@ -9,7 +9,7 @@ embedding:
   # Dataset parameters
   pt_signal_min: 0
   pt_background_min: 0
-  train_split: [[900, 100, 500]] # Number of [training, validation, testing] examples
+  train_split: [[2000, 500, 500]] # Number of [training, validation, testing] examples
   true_edges: layerless_true_edges
   noise: True # True
 
@@ -35,7 +35,7 @@ embedding:
   max_epochs: 30 # 30
 
   # Inference
-  checkpoint_path: lightning_checkpoints
+  checkpoint_path: $CFS/m3443/usr/daniel/lightning_checkpoints
 
   # Postprocessing
   callbacks: [EmbeddingPurEff, EmbeddingBuilder]
@@ -54,7 +54,7 @@ filter:
   pt_background_min: 0.0
   pt_signal_min: 0.0
   datatype_names: [[train, val, test]] # Which directory prefixes to use, assuming at least a train dataset 
-  datatype_split: [[900, 100, 500]] # Number of [training, validation, testing] examples
+  datatype_split: [[2000, 500, 500]] # Number of [training, validation, testing] examples
   endcaps: True
   true_edges: layerless_true_edges
   noise: True
@@ -80,7 +80,7 @@ filter:
 
   # Post-processing
   callbacks: [FilterInferenceCallback, FilterGetPurEff]
-  checkpoint_path: lightning_checkpoints
+  checkpoint_path: $CFS/m3443/usr/daniel/lightning_checkpoints
 
 gnn:
   # Input/output configuration
@@ -96,32 +96,32 @@ gnn:
   pt_background_min: 0.0
   pt_signal_min: 0.0
   datatype_names: [[train, val, test]] # Which directory prefixes to use, assuming at least a train dataset 
-  datatype_split: [[900, 100, 500]] # Number of [training, validation, testing] examples
+  datatype_split: [[2000, 500, 500]] # Number of [training, validation, testing] examples
   endcaps: True
   true_edges: layerless_true_edges
   noise: True
 
   # Model parameters
   in_channels: 3
-  hidden: 1024
+  hidden: 256
   batch_size: 1
-  n_graph_iters: 8
+  n_graph_iters: 4
   nb_node_layer: 5
-  nb_edge_layer: 8 # 3
+  nb_edge_layer: 2 # 3
   emb_channels: 0
   layernorm: True
   hidden_activation: ReLU
   weight: 2
   delta_eta: 1.2
   warmup: 200
-  lr: 0.001
+  lr: 0.0001
   factor: 0.3
   patience: 10
   regime: [[]]
   max_epochs: 25 # 25
   slack_alert: False
 
-  checkpoint_path: lightning_checkpoints
+  checkpoint_path: $CFS/m3443/usr/daniel/lightning_checkpoints
 
   # Post-processing
   callbacks: [GNNEffPur, GNNBuilder]

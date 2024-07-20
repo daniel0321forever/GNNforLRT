@@ -3,15 +3,15 @@ batchnorm: false
 callbacks:
 - FilterInferenceCallback
 - FilterGetPurEff
-checkpoint_path: lightning_checkpoints
+checkpoint_path: $CFS/m3443/usr/daniel/lightning_checkpoints
 datatype_names:
 - - train
   - val
   - test
 datatype_split:
-- - 900
-  - 50
-  - 50
+- - 2000
+  - 500
+  - 500
 edges_per_batch: 300000
 emb_channels: 0
 endcaps: true

@@ -94,4 +94,4 @@ if __name__ == '__main__':
             'truth': truths,
             'score': scores
         }
-    ).plot(save=f"../../output/performance_{file_ind}_{datetime.now().strftime('%Y%m%d_%H%M')}.png")
+    ).plot(save=f"../../output/roc/performance_{file_ind}_{datetime.now().strftime('%Y%m%d_%H%M')}.png")

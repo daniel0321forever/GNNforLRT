@@ -15,7 +15,6 @@ import torch
 
 from .utils import load_dataset, random_edge_slice_v2
 
-
 class GNNBase(LightningModule):
     def __init__(self, hparams):
         super().__init__()
@@ -101,8 +100,8 @@ class GNNBase(LightningModule):
         return optimizer, scheduler
 
     def training_step(self, batch, batch_idx):
-        if (batch.edge_index.ndim > 2):
-            return None
+        # if (batch.edge_index.ndim > 2):
+        #     return None
 
         torch.cuda.empty_cache()  # empty gpu cashe
 

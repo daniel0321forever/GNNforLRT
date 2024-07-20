@@ -86,31 +86,26 @@ if __name__ == '__main__':
         train_config = yaml.load(f, Loader=yaml.FullLoader)
 
     with open(os.path.join(EMBEDDING_DIR, f"{train_config_name}_{file_ind}.yaml"), "w") as f:
-        train_config["embedding"][
-            "output_dir"] = f"$CFS/m3443/usr/daniel/dataset/embedding_{file_ind}"
-        train_config["embedding"]["performance_path"] = f"stage_{file_ind}.yaml"
-        train_config["embedding"]["log_dir"] = f"logging/version_{file_ind}"
+        train_config["embedding"].setdefault("output_dir", f"$CFS/m3443/usr/daniel/dataset/embedding_{file_ind}") 
+        train_config["embedding"].setdefault("performance_path", f"stage_{file_ind}.yaml")
+        train_config["embedding"].setdefault("log_dir", f"logging/version_{file_ind}")
         yaml.dump(train_config["embedding"], f)
 
     with open(os.path.join(FILTER_DIR, f"{train_config_name}_{file_ind}.yaml"), "w") as f:
-        train_config["filter"][
-            "input_dir"] = f"$CFS/m3443/usr/daniel/dataset/embedding_{file_ind}"
-        train_config["filter"][
-            "output_dir"] = f"$CFS/m3443/usr/daniel/dataset/filter_{file_ind}"
-        train_config["filter"]["performance_path"] = f"stage_{file_ind}.yaml"
-        train_config["filter"]["log_dir"] = f"logging/version_{file_ind}"
+        train_config["filter"].setdefault("input_dir", f"$CFS/m3443/usr/daniel/dataset/embedding_{file_ind}") 
+        train_config["filter"].setdefault("output_dir", f"$CFS/m3443/usr/daniel/dataset/filter_{file_ind}") 
+        train_config["filter"].setdefault("performance_path", f"stage_{file_ind}.yaml")
+        train_config["filter"].setdefault("log_dir", f"logging/version_{file_ind}")
         yaml.dump(train_config["filter"], f)
 
     with open(os.path.join(GNN_DIR, f"{train_config_name}_{file_ind}.yaml"), "w") as f:
-        train_config["gnn"][
-            "input_dir"] = f"$CFS/m3443/usr/daniel/dataset/filter_{file_ind}"
-        train_config["gnn"][
-            "output_dir"] = f"$CFS/m3443/usr/daniel/dataset/gnn_{file_ind}"
-        train_config["gnn"]["performance_path"] = f"stage_{file_ind}.yaml"
-        train_config["gnn"]["log_dir"] = f"logging/version_{file_ind}"
+        train_config["gnn"].setdefault("input_dir", f"$CFS/m3443/usr/daniel/dataset/filter_{file_ind}") 
+        train_config["gnn"].setdefault("output_dir", f"$CFS/m3443/usr/daniel/dataset/gnn_{file_ind}") 
+        train_config["gnn"].setdefault("performance_path", f"stage_{file_ind}.yaml")
+        train_config["gnn"].setdefault("log_dir", f"logging/version_{file_ind}")
         yaml.dump(train_config["gnn"], f)
 
-    with open(f"../analysis/HSF/configs/gnn_{file_ind}.yaml", "r") as f:
+    with open(f"../analysis/HSF/configs/gnn_1.yaml", "r") as f:
         gnn_config = yaml.load(f, yaml.FullLoader)
 
     with open(f"../analysis/HSF/configs/gnn_{file_ind}.yaml", "w") as f:

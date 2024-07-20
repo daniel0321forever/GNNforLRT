@@ -1,0 +1,47 @@
+HNL:
+  list:
+  - 15GeV200mm
+event:
+  data:
+    edges:
+      gnn_processed:
+        receiver:
+          processing:
+          - select:
+              row: 1
+          tag: edge_index
+        score: score
+        sender:
+          processing:
+          - select:
+              row: 0
+          tag: edge_index
+        truth: truth
+    hits:
+      gnn_processed:
+        hit_id: hid
+        particle_id: pid
+    particles:
+      particles:
+        charge: q
+        particle_id: particle_id
+        px: px
+        py: py
+        pz: pz
+        vx: vx
+        vy: vy
+        vz: vz
+  files:
+    gnn_processed:
+      file: /global/cfs/cdirs/m3443/usr/daniel/dataset/gnn_5/test/{evtid:04}
+      parser: pyg.pickle
+    particles:
+      file: /global/cfs/cdirs/m3443/usr/daniel/raw_dataset/raw_HNL_noPU/event{evtid:09}-particles.csv
+      parser: pandas.csv
+evtid:
+  range:
+  - 0
+  - 5000
+gnn_arch:
+  list:
+  - ResAGNN+ReLU
